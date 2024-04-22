@@ -18,7 +18,9 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'professor_cod'
+        'professor_cod',
+        'email',
+        'password'
     ];
     public function horarios(){
         return $this->hasMany(Horario::class);
