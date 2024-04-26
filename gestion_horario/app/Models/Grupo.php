@@ -9,7 +9,7 @@ class Grupo extends Model
 {
     use HasFactory;
     protected $fillable = [ 'grupo_cod','descripcion'];
-    public function horarios(){
-        return $this->belongsTo(Horario::class);
+    public function horarios():HasMany{
+        return $this->hasMany(Horario::class);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Asignatura extends Model
 {
     use HasFactory;
@@ -15,7 +15,7 @@ protected $casts -> Castea datos que se reciban, por ejemplo que descripcion sea
 protected $hidden -> Oculta datos cuando serializamos 
 */
     protected $fillable = [ 'asignatura_cod','descripcion'];
-    public function horarios(){
+    public function horarios(): HasMany{
         return $this->hasMany(Horario::class);
     }
 }

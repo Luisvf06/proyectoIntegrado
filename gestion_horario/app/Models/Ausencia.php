@@ -10,11 +10,11 @@ class Ausencia extends Model
     use HasFactory;
     protected $fillable = ['descripcion'];
 
-    public function horarios(){
+    public function horarios(): BelongsTo{
         return $this->belongsTo(Horario::class);
     }
 
-    public function users(){
+    public function users():BelongsTo{
         return $this->belongsTo(User::class);
     }
 

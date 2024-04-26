@@ -9,7 +9,7 @@ class Franja extends Model
 {
     use HasFactory;
     protected $fillable = [ 'franja_cod','descripcion','horadesde','horahasta'];
-    public function horarios(){
+    public function horarios():HasMany{
         return $this->hasMany(Horario::class);
     }
 }
