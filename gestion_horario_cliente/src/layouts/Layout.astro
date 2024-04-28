@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions';//sirve para cambiar entre páginas con una pequeña transición, hace que parezca una SPA. Para que se active hay que añadirlo al head <ViewTransitions />
+import Navbar from './navbar.astro';
 interface Props {
 	title: string;
 }
@@ -17,6 +19,7 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+		<Navbar />
 		<slot />
 	</body>
 </html>
