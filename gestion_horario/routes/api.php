@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController; #Importación del controller desde su directorio
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
-
+use Illuminate\Http\Request;
 /*Route::get('/', function () {
     return view('welcome');
 });
@@ -51,7 +51,19 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('/create',[AuthController::class,'createUser']);
     Route::get('/user/{id}', [UserController::class, 'getUser']);
 });
+Route::get('/users',function ()  {
+    return 'obteniendo usuarios';    
+});
 
+//Open route
+Route::post("register",[ApiController::class,'register']);
+Route::post("login",[ApiController::class,'login']);
+
+//Protected route
+Route::group(['middleware' => ['auth:api']], function(){
+    Route::get("user",[ApiController::class,'user']);
+    Route::post("logout",[ApiController::class,'logout']);
+});
 /*
 <?php
 
