@@ -24,7 +24,7 @@ class LoginRequest extends FormRequest
 {
     return [
         'user_name' => 'sometimes|string',
-        
+        'email' => 'sometimes|email',
         'password' => 'required|string'
     ];
 }

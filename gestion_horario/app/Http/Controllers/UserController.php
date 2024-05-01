@@ -30,4 +30,20 @@ class UserController extends Controller
             ], 404);
         }
     }
+    public function register(Request $request) {
+        $request->validate([
+            'name' => 'required|string',
+            'email' => 'email|unique:users',
+            'password' => 'required|string',
+        ]);
+        User::create()([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'User created successfully.'
+        ], 201);
+    }
 }
