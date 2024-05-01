@@ -5,6 +5,8 @@ use App\Http\Controllers\UserController; #Importación del controller desde su d
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Http\Controllers\ApiController;
 /*Route::get('/', function () {
     return view('welcome');
 });
@@ -35,7 +37,13 @@ Route::delete('/ausencia/destroy/{ausencia',[AusenciaController::class,'destroy'
 
 #Rutas resources
 Route::resource('/post',AulaController::class);
-
+Route::post('login', 'AuthController@loginUser');
+Route::post('register', 'AuthController@register');
+Route::middleware('auth:api')->group(function () {
+    Route::get('user', 'AuthController@user');
+    // Other authenticated routes...
+});
+/*
 Route::post('/login',[AuthController::class,'loginUser']);
 Route::middleware('auth:sanctum')->get('/user',function(Request $request){
     return $request->user();
@@ -64,7 +72,29 @@ Route::group(['middleware' => ['auth:api']], function(){
     Route::get("user",[ApiController::class,'user']);
     Route::post("logout",[ApiController::class,'logout']);
 });
-/*
+
+
+
+Route::get('/redirect', function (Request $request) {
+    $request->session()->put('state', $state = Str::random(40));
+
+    // Recuperar client_id y redirect_uri de la petición, con valores por defecto si no se proporcionan
+    $clientId = $request->input('client_id', 'default-client-id');  // 'default-client-id' es un valor por defecto
+    $redirectUri = $request->input('redirect_uri', 'http://localhost:8080/login');
+
+    $query = http_build_query([
+        'client_id' => $clientId,
+        'redirect_uri' => $redirectUri,
+        'response_type' => 'code',
+        'scope' => '',
+        'state' => $state,
+    ]);
+
+    // Asegúrate de que la URL base 'http://localhost:8000/oauth/authorize' es correcta para tu servidor OAuth
+    return redirect('http://localhost:8080/oauth/authorize?' . $query);
+});
+
+
 <?php
 
 use Illuminate\Support\Facades\Route;
