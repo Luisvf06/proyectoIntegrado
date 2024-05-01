@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController; #Importación del controller desde su directorio
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
-
+use Illuminate\Http\Request;
 /*Route::get('/', function () {
     return view('welcome');
 });
@@ -36,7 +36,7 @@ Route::delete('/ausencia/destroy/{ausencia',[AusenciaController::class,'destroy'
 #Rutas resources
 Route::resource('/post',AulaController::class);
 
-Route::post('/login',[AuthController::class,'loginUser']);
+Route::post('/api/login',[AuthController::class,'loginUser']);
 Route::middleware('auth:sanctum')->get('/user',function(Request $request){
     return $request->user();
 });#esta ruta es para obtener el usuario autenticado, si no tiene token de autorización no se podrá acceder a esta ruta
