@@ -157,6 +157,7 @@ return [
     */
 
     'domain' => env('SESSION_DOMAIN'),
+    'domain' => null, //cambiar cuando suba a produccion
 
     /*
     |--------------------------------------------------------------------------

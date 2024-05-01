@@ -37,6 +37,9 @@ Route::delete('/ausencia/destroy/{ausencia',[AusenciaController::class,'destroy'
 
 #Rutas resources
 Route::resource('/post',AulaController::class);
+
+
+Route::post('/api/login',[AuthController::class,'loginUser']);
 Route::post('login', 'AuthController@loginUser');
 Route::post('register', 'AuthController@register');
 Route::middleware('auth:api')->group(function () {
