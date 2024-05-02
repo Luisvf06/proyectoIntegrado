@@ -52,4 +52,29 @@ class AuthController extends Controller
             'token'=>$user->createToken("API TOKEN")->plainTextToken
         ], 200);
     }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+            'device_name' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json(['email' => ['The provided credentials are incorrect.']], 401);
+        }
+
+        $token = $user->createToken($request->device_name)->plainTextToken;
+
+        return response()->json(['token' => $token], 200);
+    }
+
+    
 }

@@ -6,7 +6,10 @@ import Login from '../components/login.vue';
 ---
 
 <Layout title="Welcome to Astro.">
-<Login client:load/>
+<div class="h-screen flex items-center">
+	<Login client:load/>
+</div>	
+
 </Layout>
 
 <style>

@@ -5,8 +5,6 @@ use App\Http\Controllers\UserController; #Importación del controller desde su d
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use App\Http\Controllers\ApiController;
 /*Route::get('/', function () {
     return view('welcome');
 });
@@ -59,127 +57,20 @@ Route::get('/login', function () {
 
 #Crea un grupo de rutas supervisadas por un mismo middleware
 Route::middleware('auth:sanctum')->group(function(){
-    Route::post('/create',[AuthController::class,'createUser']);
-    Route::get('/user/{id}', [UserController::class, 'getUser']);
-});
-Route::get('/users',function ()  {
-    return 'obteniendo usuarios';    
-});
-
-//Open route
-Route::post("register",[ApiController::class,'register']);
-Route::post("login",[ApiController::class,'login']);
-
-//Protected route
-Route::group(['middleware' => ['auth:api']], function(){
-    Route::get("user",[ApiController::class,'user']);
-    Route::post("logout",[ApiController::class,'logout']);
-});
+    
+    
+    });
+Route::post('/create',[AuthController::class,'createUser']);
+Route::get('/user/{id}', [UserController::class, 'getUser']);
 
 
+Route::post('/sanctum/token', [AuthController::class, 'login']);
+Route::get('/sanctum/csrf-cookie', function (Request $request) {
+    $response = $request->user()
+                        ? response()->json(['message' => 'CSRF token has been set.'], 200)
+                        : response()->json(['message' => 'Unauthenticated.'], 401);
 
-Route::get('/redirect', function (Request $request) {
-    $request->session()->put('state', $state = Str::random(40));
+    $response->withCookie(cookie('XSRF-TOKEN', csrf_token(), 60 * 24));
 
-    // Recuperar client_id y redirect_uri de la petición, con valores por defecto si no se proporcionan
-    $clientId = $request->input('client_id', 'default-client-id');  // 'default-client-id' es un valor por defecto
-    $redirectUri = $request->input('redirect_uri', 'http://localhost:8080/login');
-
-    $query = http_build_query([
-        'client_id' => $clientId,
-        'redirect_uri' => $redirectUri,
-        'response_type' => 'code',
-        'scope' => '',
-        'state' => $state,
-    ]);
-
-    // Asegúrate de que la URL base 'http://localhost:8000/oauth/authorize' es correcta para tu servidor OAuth
-    return redirect('http://localhost:8080/oauth/authorize?' . $query);
-});
-
-
-<?php
-
-use Illuminate\Support\Facades\Route;
-
-Route::post('/token', [
-    'uses' => 'AccessTokenController@issueToken',
-    'as' => 'token',
-    'middleware' => 'throttle',
-]);
-
-Route::get('/authorize', [
-    'uses' => 'AuthorizationController@authorize',
-    'as' => 'authorizations.authorize',
-    'middleware' => 'web',
-]);
-
-$guard = config('passport.guard', null);
-
-Route::middleware(['web', $guard ? 'auth:'.$guard : 'auth'])->group(function () {
-    Route::post('/token/refresh', [
-        'uses' => 'TransientTokenController@refresh',
-        'as' => 'token.refresh',
-    ]);
-
-    Route::post('/authorize', [
-        'uses' => 'ApproveAuthorizationController@approve',
-        'as' => 'authorizations.approve',
-    ]);
-
-    Route::delete('/authorize', [
-        'uses' => 'DenyAuthorizationController@deny',
-        'as' => 'authorizations.deny',
-    ]);
-
-    Route::get('/tokens', [
-        'uses' => 'AuthorizedAccessTokenController@forUser',
-        'as' => 'tokens.index',
-    ]);
-
-    Route::delete('/tokens/{token_id}', [
-        'uses' => 'AuthorizedAccessTokenController@destroy',
-        'as' => 'tokens.destroy',
-    ]);
-
-    Route::get('/clients', [
-        'uses' => 'ClientController@forUser',
-        'as' => 'clients.index',
-    ]);
-
-    Route::post('/clients', [
-        'uses' => 'ClientController@store',
-        'as' => 'clients.store',
-    ]);
-
-    Route::put('/clients/{client_id}', [
-        'uses' => 'ClientController@update',
-        'as' => 'clients.update',
-    ]);
-
-    Route::delete('/clients/{client_id}', [
-        'uses' => 'ClientController@destroy',
-        'as' => 'clients.destroy',
-    ]);
-
-    Route::get('/scopes', [
-        'uses' => 'ScopeController@all',
-        'as' => 'scopes.index',
-    ]);
-
-    Route::get('/personal-access-tokens', [
-        'uses' => 'PersonalAccessTokenController@forUser',
-        'as' => 'personal.tokens.index',
-    ]);
-
-    Route::post('/personal-access-tokens', [
-        'uses' => 'PersonalAccessTokenController@store',
-        'as' => 'personal.tokens.store',
-    ]);
-
-    Route::delete('/personal-access-tokens/{token_id}', [
-        'uses' => 'PersonalAccessTokenController@destroy',
-        'as' => 'personal.tokens.destroy',
-    ]);
-});
-*/
+    return $response;
+})->middleware('web');

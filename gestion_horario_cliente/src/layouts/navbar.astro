@@ -1,23 +1,4 @@
 <nav class="flex items-center justify-between bg-white border border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2.5 rounded dark:bg-gray-800 shadow">
-    <div class="flex items-center">
-      <button
-        id="menu-toggle"
-        type="button"
-        class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 md:hidden"
-      >
-        <span class="sr-only">Open main menu</span>
-        <!-- Hamburger icon -->
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 6h16M4 12h16m-7 6h7"
-          />
-        </svg>
-      </button>
-    </div>
-  
     <div
       class="w-full md:block md:w-auto hidden"
       id="mobile-menu"
@@ -25,15 +6,7 @@
       <ul class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
         <li>
           <a
-            href="#"
-            class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
-          >
-            Contact
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
+            href="../components/horario"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Mi horario
@@ -41,7 +14,7 @@
         </li>
         <li>
           <a
-            href="#"
+            href="../components/misFaltas"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Mis faltas
@@ -49,7 +22,7 @@
         </li>
         <li>
           <a
-            href="#"
+            href="../components/guardias"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Guardias de hoy
@@ -57,7 +30,7 @@
         </li>
         <li>
           <a
-            href="#"
+            href="../components/faltasHoy"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Faltas de hoy
@@ -65,7 +38,7 @@
         </li>
         <li>
           <a
-            href="#"
+            href="../components/horarioProfesorado"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Horario del profesorado
@@ -73,29 +46,68 @@
         </li>
         <li>
           <a
-            href="#"
+            href="../components/plantillaDocente"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Modificar plantilla docente
           </a>
         </li>
-        <li>
-          <a
-            href="#"
+        <li class="relative">
+          <span
+            id="mi-cuenta-link"
             class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
           >
             Mi cuenta
-          </a>
+          </span>
+          <ul id="dropdown-menu" class="absolute hidden text-gray-700 pt-1 space-y-1 bg-white rounded-md shadow-lg dark:bg-gray-800 dark:text-gray-400 top-full left-0 w-48">
+            <li>
+              <a
+                href="#"
+                class="block py-2 pr-4 pl-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                Ajustes
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="block py-2 pr-4 pl-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                Cerrar sesión
+              </a>
+            </li>
+          </ul>
         </li>
       </ul>
     </div>
   </nav>
   
   <script>
-    const menuToggle = document.getElementById('menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-  
-    menuToggle.addEventListener('click', function () {
-      mobileMenu.classList.toggle('hidden');
+    const miCuentaLink = document.getElementById('mi-cuenta-link');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    miCuentaLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      dropdownMenu.classList.toggle('collapse');
+});
+    miCuentaLink.addEventListener('mouseover', function () {
+      dropdownMenu.classList.remove('hidden');
+      dropdownMenu.classList.add('collapse');
+    });
+
+    miCuentaLink.addEventListener('mouseout', function () {
+      dropdownMenu.classList.add('hidden');
     });
   </script>
+  <style>
+    .collapse {
+  height: auto;
+  transition: height 0.3s ease-out;
+}
+
+.collapse.hidden {
+  height: 0;
+  overflow: hidden;
+}
+
+  </style>
