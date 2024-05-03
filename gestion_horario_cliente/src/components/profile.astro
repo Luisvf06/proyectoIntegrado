@@ -1,0 +1,7 @@
+---
+import { getUser } from '../lib/sanctum';
+
+const user = await getUser();
+---
+
+<h1>Welcome, {user.name}!</h1>

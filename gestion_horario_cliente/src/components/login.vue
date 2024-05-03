@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-medium mb-4 text-center text-gradient">{{ title }}</h1>
     <h2 class="text-xl mb-8 text-center">{{ subtitle }}</h2>
     <div class="datos">
-      <input type="text" v-model="username" placeholder="Nombre de usuario o email" class="block w-full mb-4 p-2 border rounded">
+      <input type="text" v-model="user_name" placeholder="Nombre de usuario o email" class="block w-full mb-4 p-2 border rounded">
       <input type="password" v-model="password" placeholder="Contraseña" class="block w-full mb-4 p-2 border rounded">
       <button @click="login" class="block w-full mb-4 p-2 bg-blue-500 text-white rounded">Iniciar sesión</button>
       <a href="#" class="block w-full mb-4 p-2 text-center text-blue-500 hover:underline">¿Olvidaste tu contraseña?</a>
@@ -20,27 +20,24 @@ export default {
   setup() {
     const title = ref('Clockwise');
     const subtitle = ref('Organiza tu trabajo');
-    const username = ref('');
+    const user_name = ref('');
     const password = ref('');
     const errorMsg = ref('');
 
     const login = async () => {
   try {
-
-    const token = document.head.querySelector('meta[name="csrf-token"]').content;
-    axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
-
-   
-    const response = await axios.post('http://0.0.0.0:8080/api/login', {
-      email: username.value,
+    console.log('Sending login request:', {
+      user_name: user_name.value,
       password: password.value,
-      device_name: '', 
+    });
+    const response = await axios.post('http://0.0.0.0:8080/api/login', {
+      user_name: user_name.value,
+      password: password.value,
     });
 
-    console.log(response.data);
+    console.log('Received login response:', response.data);
     localStorage.setItem('access_token', response.data.token);
   } catch (error) {
-
     if (error.response) {
       errorMsg.value = 'Error al iniciar sesión: ' + error.response.data.message;
     } else {
@@ -53,7 +50,7 @@ export default {
     return {
       title,
       subtitle,
-      username,
+      user_name,
       password,
       login,
       errorMsg

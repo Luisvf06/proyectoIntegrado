@@ -15,11 +15,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Passport::hashClientSecrets();
+        
     }
     public function register(): void
     {
-    Passport::ignoreRoutes();
+        
     }
     
 }

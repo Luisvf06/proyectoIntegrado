@@ -42,7 +42,6 @@ Route::post('login', 'AuthController@loginUser');
 Route::post('register', 'AuthController@register');
 Route::middleware('auth:api')->group(function () {
     Route::get('user', 'AuthController@user');
-    // Other authenticated routes...
 });
 /*
 Route::post('/login',[AuthController::class,'loginUser']);
@@ -73,4 +72,4 @@ Route::get('/sanctum/csrf-cookie', function (Request $request) {
     $response->withCookie(cookie('XSRF-TOKEN', csrf_token(), 60 * 24));
 
     return $response;
-})->middleware('web');
+})->middleware('web');*/
