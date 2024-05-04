@@ -52,13 +52,17 @@ const { title } = Astro.props;
 					Courier New,
 					monospace;
 			}
-			body {
-				display: flex;
-				flex-direction: column;
-				align-items: flex-start; 
-				padding: 2rem;
-				min-height: 100vh;
-			}
+            body {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Cambiado de flex-start a center para centrar horizontalmente */
+    justify-content: center; /* Asegura el centrado vertical */
+    padding: 2rem;
+    min-height: 100vh;
+    width: 100vw; /* Asegura que ocupa todo el ancho */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
 
 			main {
 				margin: auto;

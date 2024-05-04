@@ -1,16 +1,18 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
+import LayoutIndex from '../layouts/LayoutIndex.astro';
+
 import Login from '../components/login.vue';
 
 ---
 
-<Layout title="Welcome to Astro.">
-<div class="h-screen flex items-center">
+<LayoutIndex title="Clockwise">
+
+<div class="h-screen flex items-center justify-center">
+
 	<Login client:load/>
 </div>	
 
-</Layout>
+</LayoutIndex>
 
 <style>
 	main {

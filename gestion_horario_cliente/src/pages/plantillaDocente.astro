@@ -1,0 +1,103 @@
+---
+import Navbar from '../layouts/navbar.astro';
+import Layout from '../layouts/Layout.astro';
+import EditButton from '../components/editButton.astro';
+import DeleteButton from '../components/deleteButton.astro';
+
+const profesorado = [
+  { id: 1, nombre: 'Profesor A' },
+  { id: 2, nombre: 'Profesor B' },
+  { id: 3, nombre: 'Profesor C' }
+];
+---
+
+<Layout title='Plantilla'>
+  <Navbar />
+  <label for="file">Adjunte el documento .xml:</label>
+  <input type="file" id="file">
+  <div style="display: flex; align-items: center;">
+    <select id="profesorSelect" name="profesorado" style="margin-right: 10px;">
+      <option value="">Escoja un profesor</option>
+      {profesorado.map(profesor => (
+        <option value={profesor.id}>{profesor.nombre}</option>
+      ))}
+    </select>
+    <EditButton id="editButton" style="display: none;" />
+    <DeleteButton id="deleteButton" style="display: none;" />
+    
+  </div>
+  <button id="verFaltas" style="display: none;">Ver Faltas</button>
+  <button id="verHorario" style="display: none;">Ver Horario</button>
+  
+  <!-- Faltas -->
+  <div id="tablaFaltas" style="display: none;">
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Hora</th>
+          <th>Clase</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Necesito los datos para poder hacer las celdas -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Horario -->
+  <div id="tablaHorario" style="display: none;">
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Asignatura</th>
+          <th>Edificio-Aula</th>
+          <th>Grupo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Necesito los datos para poder hacer las celdas -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    const profesorSelect = document.getElementById('profesorSelect');
+    const verFaltas = document.getElementById('verFaltas');
+    const verHorario = document.getElementById('verHorario');
+    const tablaFaltas = document.getElementById('tablaFaltas');
+    const tablaHorario = document.getElementById('tablaHorario');
+    const editButton = document.getElementById('editButton');
+    const deleteButton = document.getElementById('deleteButton');
+  
+    function updateVisibility() {
+      const isSelected = profesorSelect.value !== "";
+      verFaltas.style.display = isSelected ? 'block' : 'none';
+      verHorario.style.display = isSelected ? 'block' : 'none';
+      editButton.style.display = isSelected ? 'inline-block' : 'none';
+      deleteButton.style.display = isSelected ? 'inline-block' : 'none';
+      tablaFaltas.style.display = 'none';
+      tablaHorario.style.display = 'none';
+    }
+  
+    profesorSelect.addEventListener('change', updateVisibility);
+    window.onload = updateVisibility;
+  
+    verFaltas.addEventListener('click', () => {
+      tablaFaltas.style.display = 'block';
+      tablaHorario.style.display = 'none';
+    });
+  
+    verHorario.addEventListener('click', () => {
+      tablaHorario.style.display = 'block';
+      tablaFaltas.style.display = 'none';
+    });
+  </script>
+  
+  
+</Layout>
+<style>
+    button { color:aliceblue}
+</style>
