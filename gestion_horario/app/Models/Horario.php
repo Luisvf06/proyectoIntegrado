@@ -9,7 +9,8 @@ class Horario extends Model
 {   
     
     use HasFactory;
-    protected $fillable = [ 'horario_cod','dia',];
+    protected $guarded = [];
+    //protected $fillable = [ 'horario_cod','dia',];
     public function ausencias(): HasMany{
         return $this->hasMany(Ausencia::class);
     }

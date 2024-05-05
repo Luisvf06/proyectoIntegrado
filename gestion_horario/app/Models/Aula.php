@@ -9,7 +9,8 @@ class Aula extends Model
 {
     use HasFactory;
 
-    protected $fillable = [ 'aula_cod','descripcion'];
+    protected $guarded = [];
+    //protected $fillable = [ 'aula_cod','descripcion'];
     public function horarios():HasMany{
         return $this->hasMany(Horario::class);
     }

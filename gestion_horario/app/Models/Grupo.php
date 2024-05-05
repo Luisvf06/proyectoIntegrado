@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Grupo extends Model
 {
     use HasFactory;
-    protected $fillable = [ 'grupo_cod','descripcion'];
+    protected $guarded = [];
+    //protected $fillable = [ 'grupo_cod','descripcion'];
     public function horarios():HasMany{
         return $this->hasMany(Horario::class);
     }

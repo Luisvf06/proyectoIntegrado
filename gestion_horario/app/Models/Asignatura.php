@@ -14,7 +14,8 @@ protected $guard -> los complementarios a fillable, son los que no son cumplimen
 protected $casts -> Castea datos que se reciban, por ejemplo que descripcion sea un string
 protected $hidden -> Oculta datos cuando serializamos 
 */
-    protected $fillable = [ 'asignatura_cod','descripcion'];
+    //protected $fillable = [ 'asignatura_cod','descripcion'];
+    protected $guarded = [];#esto es lo contrario que fillable, es decir, no hay ninguno guardado por lo que se pueden rellenar todos
     public function horarios(): HasMany{
         return $this->hasMany(Horario::class);
     }

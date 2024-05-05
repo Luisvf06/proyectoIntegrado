@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController; #Importación del controller desde su d
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\xmlController;
 /*Route::get('/', function () {
     return view('welcome');
 });
@@ -42,6 +43,10 @@ Route::post('login', 'AuthController@loginUser');
 Route::post('register', 'AuthController@register');
 Route::middleware('auth:api')->group(function () {
     Route::get('user', 'AuthController@user');
+    Route::get('datosXml',[xmlController::class,'datosXml'])->name('datosXml');
+    Route::post('/register',[xmlController::class,'registrar'])->name('registrar');
+    Route::get('/export',[xmlController::class,'export'])->name('export');
+
 });
 /*
 Route::post('/login',[AuthController::class,'loginUser']);

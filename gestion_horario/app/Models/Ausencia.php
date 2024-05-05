@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Ausencia extends Model
 {
     use HasFactory;
-    protected $fillable = ['descripcion'];
+    protected $guarded = [];
+    //protected $fillable = ['descripcion'];
 
     public function horarios(): BelongsTo{
         return $this->belongsTo(Horario::class);
