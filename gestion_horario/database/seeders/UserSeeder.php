@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\DB;
 class UserSeeder extends Seeder
 {
     public function run(): void
@@ -37,10 +37,10 @@ class UserSeeder extends Seeder
             ]
         ];
 
-        foreach ($users as $user) {
+        /* foreach ($users as $user) {
             $createdUser = User::create($user);
             $token = $createdUser->createToken('API Token')->plainTextToken;
             echo "Token for {$createdUser->name}: $token\n";
-        }
+        } */
     }
 }

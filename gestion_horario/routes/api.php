@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController; #Importación del controller desde su directorio
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
+use App\Http\Controllers\Api\LoginController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\xmlController;
 /*Route::get('/', function () {
@@ -43,11 +44,13 @@ Route::post('login', 'AuthController@loginUser');
 Route::post('register', 'AuthController@register');
 Route::middleware('auth:api')->group(function () {
     Route::get('user', 'AuthController@user');
-    Route::get('datosXml',[xmlController::class,'datosXml'])->name('datosXml');
+    Route::get('generarUsers',[xmlController::class,'generarUsers'])->name('generarUsers');
     Route::post('/register',[xmlController::class,'registrar'])->name('registrar');
     Route::get('/export',[xmlController::class,'export'])->name('export');
 
 });
+Route::post('login', [App\Http\Controllers\Api\LoginController::class, 'login']);
+
 /*
 Route::post('/login',[AuthController::class,'loginUser']);
 Route::middleware('auth:sanctum')->get('/user',function(Request $request){
