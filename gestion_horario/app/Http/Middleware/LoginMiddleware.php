@@ -19,10 +19,10 @@ class LoginMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Comprueba si el usuario no está autenticado
-        if (!Auth::check()) {
+       /*  if (!Auth::check()) {
             // Redirige a la página de inicio de sesión si no está autenticado
             return redirect('/login');
-        }
+        } */
 
         // Si el usuario está autenticado, continua con la siguiente solicitud
         return $next($request);

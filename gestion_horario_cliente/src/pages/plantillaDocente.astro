@@ -4,22 +4,43 @@ import Layout from '../layouts/Layout.astro';
 import EditButton from '../components/editButton.astro';
 import DeleteButton from '../components/deleteButton.astro';
 
-const profesorado = [
-  { id: 1, nombre: 'Profesor A' },
-  { id: 2, nombre: 'Profesor B' },
-  { id: 3, nombre: 'Profesor C' }
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('xml', file);
+
+  try {
+    const response = await fetch('http://127.0.0.1:8080/api/upload-xml', { 
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    alert('Archivo procesado: ' + result.message);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    alert('Error al procesar el archivo');
+  }
+}
+const user = [
+  { id: 1, name: 'Profesor A' },
+  { id: 2, name: 'Profesor B' },
+  { id: 3, name: 'Profesor C' }
 ];
 ---
 
 <Layout title='Plantilla'>
   <Navbar />
   <label for="file">Adjunte el documento .xml:</label>
-  <input type="file" id="file">
+  <input type="file" id="file" name="xml" onchange="handleFileUpload(event)">
   <div style="display: flex; align-items: center;">
-    <select id="profesorSelect" name="profesorado" style="margin-right: 10px;">
+    <select id="profesorSelect" name="user" style="margin-right: 10px;">
       <option value="">Escoja un profesor</option>
-      {profesorado.map(profesor => (
-        <option value={profesor.id}>{profesor.nombre}</option>
+      {/* Suponemos que 'user' es una prop proporcionada al componente */}
+      {user.map(user => (
+        <option value={user.id}>{user.name}</option>
       ))}
     </select>
     <EditButton id="editButton" style="display: none;" />
@@ -100,4 +121,6 @@ const profesorado = [
 </Layout>
 <style>
     button { color:aliceblue}
+    label { color:aliceblue}
+    input { color:aliceblue}
 </style>

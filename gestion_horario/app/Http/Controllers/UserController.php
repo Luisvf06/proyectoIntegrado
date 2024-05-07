@@ -12,6 +12,14 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function index()
+{
+  return new UserCollection(User::latest()->paginate());
+}
+public function show(User $user)
+{
+  return new UserResource($user);
+}
     /**
      * Retrieve a user by ID.
      *

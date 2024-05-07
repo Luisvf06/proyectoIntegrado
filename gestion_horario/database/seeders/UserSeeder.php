@@ -26,21 +26,21 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Carlos',
                 'email' => 'carlosgar@ejemplo.com',
-                'user_name' => 'cargar',
+                'user_name' => 'carrgar',
                 'password' => Hash::make('cargar')
             ],
             [
                 'name' => 'Jorge',
                 'email' => 'jorgebar@ejemplo.com',
-                'user_name' => 'jorbar',
+                'user_name' => 'jorrbar',
                 'password' => Hash::make('jorbar')
             ]
         ];
 
-        /* foreach ($users as $user) {
+         foreach ($users as $user) {
             $createdUser = User::create($user);
             $token = $createdUser->createToken('API Token')->plainTextToken;
             echo "Token for {$createdUser->name}: $token\n";
-        } */
+        } 
     }
 }
