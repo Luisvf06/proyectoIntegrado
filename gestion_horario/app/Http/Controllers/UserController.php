@@ -92,7 +92,7 @@ public function show(User $user)
             if (count($partesFiltradas) >= 2) {
                 // Se crea el correo usando las partes validas
                 $email = $this->normalizarTexto(array_shift($partesFiltradas)) . '.' . $this->normalizarTexto(array_shift($partesFiltradas)) . '@iespoligonosur.org';
-            }else{$email= $firstName."2024@iespoligonosur.org"}
+            }else{$email= $firstName."2024@iespoligonosur.org";}
 
             $user_name = '';
             if (count($partesFiltradas) >= 2) {

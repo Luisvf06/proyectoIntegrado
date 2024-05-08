@@ -23,3 +23,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/upload-xml', [XMLController::class, 'uploadXML'])->name('upload.xml');
 
+Route::resource('users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
+Route::resource('ausencias', AusenciaController::class);
+Route::resource('asignaturas', AsignaturaController::class);
+Route::resource('horarios', HorarioController::class);
+Route::resource('aulas', AulaController::class);
+Route::resource('franjas', FranjaController::class);
+Route::resource('grupos', GrupoController::class);
+Route::resource('periodos', PeriodoController::class);
