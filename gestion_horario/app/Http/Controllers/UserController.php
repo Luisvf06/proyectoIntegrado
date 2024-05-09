@@ -116,7 +116,7 @@ public function show(User $user)
             $newUser->save();
         }
 
-        return redirect()->route('registrar');
+        return redirect()->route('index')->with('success', 'Usuarios creados correctamente.');
     }
 
 
