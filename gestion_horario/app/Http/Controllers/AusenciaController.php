@@ -34,7 +34,7 @@ class AusenciaController extends Controller
         $ausencia->profesor_id=$request->profesor_id;
         $ausencia->save();
 
-        return redirect()->route('ausencias.index');
+        return redirect()->route('ausencias.index')->with('success','Ausencia creada correctamente');
     }
 
     /**
@@ -59,7 +59,7 @@ class AusenciaController extends Controller
     public function update(AusenciaRequest $request, Ausencia $ausencia):RedirectResponse
     {
         $ausencia->update($request->all());
-        return redirect()->route('ausencias.index');
+        return redirect()->route('ausencias.index')->with('success','Ausencia actualizada correctamente');
     }
 
     /**
@@ -68,6 +68,6 @@ class AusenciaController extends Controller
     public function destroy(Request $request, Ausencia $ausencia)
     {
         $ausencia->delete();
-        return redirect()->route('ausencias.index');
+        return redirect()->route('ausencias.index')->with('success','Ausencia eliminada correctamente');
     }
 }
