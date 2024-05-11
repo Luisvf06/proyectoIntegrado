@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\AusenciaRequest;
 class AusenciaController extends Controller
@@ -12,37 +12,27 @@ class AusenciaController extends Controller
     public function index()
     {
         $ausencias= Ausencia::all();
-        //return 
+        return  response()->json($ausencias, 200);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function store(AusenciaRequest $request)
     {
-        //
+        Ausencia::create($request->all());
+        return response()->json(['message' => 'Ausencia creada correctamente'], 201);
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(AusenciaRequest $request):RedirectResponse
-    {
-        $ausencia=new Ausencia;
-        $ausencia->fecha=$request->fecha;
-        $ausencia->hora=$request->hora;
-        $ausencia->profesor_id=$request->profesor_id;
-        $ausencia->save();
-
-        return redirect()->route('ausencias.index')->with('success','Ausencia creada correctamente');
-    }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $ausencia= Ausencia::find($id);
+        return  response()->json($ausencia, 200);
     }
 
     /**
@@ -56,12 +46,19 @@ class AusenciaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(AusenciaRequest $request, Ausencia $ausencia):RedirectResponse
+    public function update(AusenciaRequest $request, $id)
     {
-        $ausencia->update($request->all());
-        return redirect()->route('ausencias.index')->with('success','Ausencia actualizada correctamente');
+        $ausencia=Ausencia::find($id);
+        $ausencia->fecha=$request->fecha;
+        $ausencia->hora=$request->hora;
+        $ausencia->save();
+        return response()->json(['message' => 'Ausencia actualizada correctamente'], 200);
     }
-
+    public function destroy($id)
+    {
+        $ausencia=Ausencia::find($id)->delete();
+        return response()->json(['message' => 'Ausencia eliminada correctamente'], 200);
+    }
     /**
      * Remove the specified resource from storage.
      */

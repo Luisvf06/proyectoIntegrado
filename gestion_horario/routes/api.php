@@ -21,11 +21,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/upload-xml', [XMLController::class, 'uploadXML'])->name('upload.xml');
+Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
 
-Route::resource('users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
-Route::resource('ausencias', AusenciaController::class);
-Route::resource('asignaturas', AsignaturaController::class);
+Route::resource('/users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
+Route::resource('/ausencias', AusenciaController::class);
+Route::resource('/asignaturas', AsignaturaController::class);
 Route::resource('horarios', HorarioController::class);
 Route::resource('aulas', AulaController::class);
 Route::resource('franjas', FranjaController::class);
