@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Role;
-use App\Models\User;
+use App\Models\User; 
 use Carbon\Carbon;
 use Saloon\XmlWrangler\XmlReader;
 use Illuminate\Support\Facades\Hash;

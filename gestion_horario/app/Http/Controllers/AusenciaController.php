@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Horario;
+use App\Models\User;
+use App\Models\Ausencia;
 use App\Http\Requests\AusenciaRequest;
 class AusenciaController extends Controller
 {
@@ -20,10 +24,14 @@ class AusenciaController extends Controller
      */
     public function store(AusenciaRequest $request)
     {
-        Ausencia::create($request->all());
-        return response()->json(['message' => 'Ausencia creada correctamente'], 201);
-
+        try {
+            Ausencia::create($request->all());
+            return response()->json(['message' => 'Ausencia creada correctamente'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+    
 
 
     /**
@@ -58,13 +66,6 @@ class AusenciaController extends Controller
     {
         $ausencia=Ausencia::find($id)->delete();
         return response()->json(['message' => 'Ausencia eliminada correctamente'], 200);
-    }
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request, Ausencia $ausencia)
-    {
-        $ausencia->delete();
-        return redirect()->route('ausencias.index')->with('success','Ausencia eliminada correctamente');
-    }
+
+}
 }
