@@ -153,6 +153,12 @@ class UserController extends Controller
         return response()->json(['success' => true, 'created_users' => $createdUsers,'token'=>$user->createToken("API TOKEN")->plainTextToken], 201);
     }
     
+    public function getAuthenticatedUser(Request $request)
+{
+    $user = $request->user(); 
+
+    return response()->json($user);
+}
 
 
 }

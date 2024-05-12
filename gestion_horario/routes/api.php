@@ -23,14 +23,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/upload-xml', [XmlController::class, 'uploadXML']);
 
-Route::resource('/users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
-Route::resource('/ausencias', AusenciaController::class);
-Route::resource('/asignaturas', AsignaturaController::class);
-Route::resource('horarios', HorarioController::class);
-Route::resource('aulas', AulaController::class);
-Route::resource('franjas', FranjaController::class);
-Route::resource('grupos', GrupoController::class);
-Route::resource('periodos', PeriodoController::class);
+// Ruta para obtener el usuario autenticado
+Route::middleware('auth:sanctum')->get('/user', [UserController::class, 'getAuthenticatedUser']);
+
 
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::resource('/users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
+    Route::resource('/ausencias', AusenciaController::class);
+    Route::resource('/asignaturas', AsignaturaController::class);
+    Route::resource('/horarios', HorarioController::class);
+    Route::resource('/aulas', AulaController::class);
+    Route::resource('/franjas', FranjaController::class);
+    Route::resource('/grupos', GrupoController::class);
+    Route::resource('/periodos', PeriodoController::class);
+});
