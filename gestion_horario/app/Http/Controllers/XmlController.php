@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
-class XMLController extends Controller
+class XmlController extends Controller
 {
     public function uploadXML(Request $request)
     {

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-200 p-8 rounded-lg shadow-md">
+  <div class="bg-gray-200 p-8 rounded-lg shadow-md" v-if="!isLoggedIn">
     <h1 class="text-3xl font-medium mb-4 text-center text-gradient">{{ title }}</h1>
     <h2 class="text-xl mb-8 text-center">{{ subtitle }}</h2>
     <div class="datos">
@@ -10,10 +10,13 @@
       <p v-if="errorMsg" class="text-red-500">{{ errorMsg }}</p>
     </div>
   </div>
+  <div v-else>
+    <p>Redireccionando...</p>
+  </div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 
 export default {
@@ -24,28 +27,39 @@ export default {
     const password = ref('');
     const errorMsg = ref('');
 
-    const login = async () => {
-  try {
-    console.log('Sending login request:', {
-      user_name: user_name.value,
-      password: password.value,
-    });
-    const response = await axios.post('http://0.0.0.0:8080/api/login', {
-      user_name: user_name.value,
-      password: password.value,
+    const isLoggedIn = computed(() => {
+      return typeof window !== 'undefined' ? !!window.localStorage.getItem('access_token') : false;
     });
 
-    console.log('Received login response:', response.data);
-    localStorage.setItem('access_token', response.data.token);
-  } catch (error) {
-    if (error.response) {
-      errorMsg.value = 'Error al iniciar sesión: ' + error.response.data.message;
-    } else {
-      errorMsg.value = 'Error al iniciar sesión: ' + error.message;
+    // Redirigir si ya está logueado 
+    if (isLoggedIn.value && typeof window !== 'undefined') {
+      window.location.href = '/horario';
     }
-    console.error(error);
-  }
-}
+
+    const login = async () => {
+      try {
+        console.log('Sending login request:', {
+          user_name: user_name.value,
+          password: password.value,
+        });
+        const response = await axios.post('http://127.0.0.1:8080/api/login', {
+          user_name: user_name.value,
+          password: password.value,
+        });
+        console.log('Received login response:', response.data);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('access_token', response.data.token);
+          window.location.href = '/horario';
+        }
+      } catch (error) {
+        if (error.response) {
+          errorMsg.value = 'Error al iniciar sesión: ' + error.response.data.message;
+        } else {
+          errorMsg.value = 'Error al iniciar sesión: ' + error.message;
+        }
+        console.error(error);
+      }
+    }
 
     return {
       title,
@@ -53,7 +67,8 @@ export default {
       user_name,
       password,
       login,
-      errorMsg
+      errorMsg,
+      isLoggedIn
     }
   }
 }

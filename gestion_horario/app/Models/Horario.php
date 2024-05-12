@@ -27,8 +27,8 @@ class Horario extends Model
         return $this->belongsTo(Grupo::class);
     }
 
-    public function users(): HasMany{
-        return $this->hasMany(User::class);
+    public function users(): BelongsTo{
+        return $this->belongsTo(User::class);
     }
 
     public function aulas():BelongsTo{

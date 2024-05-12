@@ -17,19 +17,8 @@ class User extends Authenticatable
     use Notifiable;
 
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    /* protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'user_name',
-        'role_id',
-    ]; */
-    protected $guarded = [];
+
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -61,7 +50,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function roles():BelongsToMany{
-        return $this->belongsToMany(Role::class);
+    public function roles():HasMany{
+        return $this->HasMany(Role::class);
+    }
+
+    public function horarios():HasMany{
+        return $this->HasMany(Horario::class);
+    }
+    public function ausencias():HasMany{
+        return $this->HasMany(Ausencia::class);
     }
 }

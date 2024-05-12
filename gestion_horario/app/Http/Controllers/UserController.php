@@ -150,7 +150,7 @@ class UserController extends Controller
         }
     
         // Retornar respuesta JSON
-        return response()->json(['success' => true, 'created_users' => $createdUsers], 201);
+        return response()->json(['success' => true, 'created_users' => $createdUsers,'token'=>$user->createToken("API TOKEN")->plainTextToken], 201);
     }
     
 

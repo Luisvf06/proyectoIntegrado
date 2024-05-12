@@ -9,31 +9,31 @@ use App\Http\Requests\LoginRequest;
 use Auth;
 class AuthController extends Controller
 {
-    public function createUser(CreateUserRequest $request){
-        $nameParts = explode(' ', $request->name);
-        $firstName = $nameParts[0];
-        $lastName = $nameParts[1]; 
+    // public function createUser(CreateUserRequest $request){
+    //     $nameParts = explode(' ', $request->name);
+    //     $firstName = $nameParts[0];
+    //     $lastName = $nameParts[1]; 
     
-        $password = bcrypt($firstName . $lastName); 
-        $userName = strtolower($firstName . $lastName . date('Y'));
-        $email = strtolower($firstName . '.' . $lastName . '@ejemplo.com');
+    //     $password = bcrypt($firstName . $lastName); 
+    //     $userName = strtolower($firstName . $lastName . date('Y'));
+    //     $email = strtolower($firstName . '.' . $lastName . '@ejemplo.com');
     
-        $user = new User([
-            'name' => $request->name,
-            'email' => $email,
-            'password' => $password,
-            'user_name' => $userName,
-            'role_id' => 3 
-        ]);
+    //     $user = new User([
+    //         'name' => $request->name,
+    //         'email' => $email,
+    //         'password' => $password,
+    //         'user_name' => $userName,
+    //         'role_id' => 3 
+    //     ]);
     
-        $user->save();
+    //     $user->save();
     
-        return response()->json([
-            'status' => true,
-            'message' => 'Successfully created user!',
-            'token' => $user->createToken("API TOKEN")->plainTextToken
-        ], 201);
-    }
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Successfully created user!',
+    //         'token' => $user->createToken("API TOKEN")->plainTextToken
+    //     ], 201);
+    // }
     
 
     

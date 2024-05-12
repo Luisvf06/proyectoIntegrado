@@ -11,7 +11,7 @@ class Periodo extends Model
     protected $dateFormat = 'Y-m-d';
     protected $guarded = [];
     //protected $fillable = [ 'periodo_cod','descripcion','desdefecha','hastafecha'];
-    public function horarios(){
+    public function horarios():BelongsTo{
         return $this->belongsTo(Horario::class);
     }
 }
