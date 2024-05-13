@@ -76,7 +76,7 @@ class UserController extends Controller
         return $texto;
     }
 
-    public function store(UserRequest $request)
+    public function store(Request $request)
     {
         // Lee el archivo XML
         $xml = file_get_contents($request->file('xml')->getRealPath());

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Requests;
 use App\Models\User;
 use App\Http\Requests\LoginRequest;
-
+use Illuminate\Support\Facades\Auth;
 use Auth;
 class AuthController extends Controller
 {
@@ -53,28 +53,37 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
-            'device_name' => 'required',
-        ]);
+    // public function login(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //         'password' => 'required',
+    //         'device_name' => 'required',
+    //     ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 400);
+    //     }
 
-        $user = User::where('email', $request->email)->first();
+    //     $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['email' => ['The provided credentials are incorrect.']], 401);
-        }
+    //     if (! $user || ! Hash::check($request->password, $user->password)) {
+    //         return response()->json(['email' => ['The provided credentials are incorrect.']], 401);
+    //     }
 
-        $token = $user->createToken($request->device_name)->plainTextToken;
+    //     $token = $user->createToken($request->device_name)->plainTextToken;
 
-        return response()->json(['token' => $token], 200);
+    //     return response()->json(['token' => $token], 200);
+    // }
+
+    public function logout(Request $request) {
+        
+        $request->user()->tokens()->delete(); 
+        Auth::logout(); 
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Successfully logged out'], 200);
     }
-
-    
 }
