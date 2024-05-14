@@ -8,19 +8,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Aula;
 
+
 class AulaController extends Controller
 {
-    public function generarAulas(Request $request) {
-        $xml = file_get_contents($request->file('xml')->getRealPath());
-        $reader = XmlReader::fromString($xml);
-        $aulas = $reader->xpathValue('//aulas');
+    public function generarAulas(Request $request)
+    {
+        $data = $request->input('data');
 
         DB::beginTransaction();
         try {
-            foreach ($aulas as $aula) {
-                $codigo = $aula->xpathValue('aula_cod')->get();
-                $descripcion = $aula->xpathValue('descripcion')->get();
-        
+            foreach ($data as $aula) {
+                $codigo = $aula->xpathValue('column[@name="aula_cod"]')->sole();
+                $descripcion = $aula->xpathValue('column[@name="descripcion"]')->sole();
+
                 if (!Aula::where('codigo', $codigo)->exists()) {
                     Aula::create([
                         'codigo' => $codigo,

@@ -31,7 +31,7 @@ export default {
       return typeof window !== 'undefined' ? !!window.localStorage.getItem('access_token') : false;
     });
 
-    // Redirigir si ya está logueado 
+    
     if (isLoggedIn.value && typeof window !== 'undefined') {
       window.location.href = '/horario';
     }
@@ -42,6 +42,7 @@ export default {
           user_name: user_name.value,
           password: password.value,
         });
+        //cambiar la direccion ip a la del servidor
         const response = await axios.post('http://127.0.0.1:8080/api/login', {
           user_name: user_name.value,
           password: password.value,

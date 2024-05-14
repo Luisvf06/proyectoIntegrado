@@ -19,18 +19,13 @@ class RoleSeeder extends Seeder
         ]);
 
         Role::create([
-            'name' => 'director',
+            'name' => 'jefatura',
             'id' => '2'
         ]);
 
         Role::create([
-            'name' => 'jefatura',
-            'id' => '3'
-        ]);
-
-        Role::create([
             'name' => 'docente',
-            'id' => '4'
+            'id' => '3'
         ]);
     
     DB::table('role_user')->insert([
@@ -38,12 +33,24 @@ class RoleSeeder extends Seeder
         'user_id' => '1'
     ]);
     DB::table('role_user')->insert([
-        'role_id' => '2',
+        'role_id' => '1',
         'user_id' => '2'
     ]);
     DB::table('role_user')->insert([
-        'role_id' => '3',
+        'role_id' => '1',
         'user_id' => '3'
+    ]);
+    DB::table('role_user')->insert([
+        'role_id' => '1',
+        'user_id' => '4'
+    ]);
+    DB::table('role_user')->insert([
+        'role_id' => '1',
+        'user_id' => '5'
+    ]);
+    DB::table('role_user')->insert([
+        'role_id' => '1',
+        'user_id' => '6'
     ]);
 }
 }

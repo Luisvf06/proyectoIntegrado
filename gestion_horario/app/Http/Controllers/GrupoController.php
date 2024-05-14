@@ -7,19 +7,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Grupo;
 
+
 class GrupoController extends Controller
 {
-    public function generarGrupos(Request $request) {
-        $xml = file_get_contents($request->file('xml')->getRealPath());
-        $reader = XmlReader::fromString($xml);
-        $grupos = $reader->xpathValue('//grupos');
+    public function generarGrupos(Request $request)
+    {
+        $data = $request->input('data');
 
         DB::beginTransaction();
         try {
-            foreach ($grupos as $grupo) {
-                $codigo = $grupo->xpathValue('grupo_cod')->get();
-                $descripcion = $grupo->xpathValue('descripcion')->get();
-        
+            foreach ($data as $grupo) {
+                $codigo = $grupo->xpathValue('column[@name="grupo_cod"]')->sole();
+                $descripcion = $grupo->xpathValue('column[@name="descripcion"]')->sole();
+
                 if (!Grupo::where('codigo', $codigo)->exists()) {
                     Grupo::create([
                         'codigo' => $codigo,

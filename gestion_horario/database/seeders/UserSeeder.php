@@ -12,28 +12,40 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'admin',
+                'name' => 'luis',
                 'email' => 'luis.vazquez.franco.al@iespoligonosur.org',
                 'user_name' => 'luisvaz',
                 'password' => Hash::make('admin1')
             ],
             [
-                'name' => 'pepe',
-                'email' => 'pepeperez@ejemplo.com',
-                'user_name' => 'pepepe',
-                'password' => Hash::make('papapa')
+                'name' => 'jorge',
+                'email' => 'jorbarab@ejemplo.com',
+                'user_name' => 'jorbarab',
+                'password' => Hash::make('profesor1')
             ],
             [
-                'name' => 'Carlos',
-                'email' => 'carlosgar@ejemplo.com',
-                'user_name' => 'carrgar',
-                'password' => Hash::make('cargar')
+                'name' => 'carlos',
+                'email' => 'cargarvil@ejemplo.com',
+                'user_name' => 'cargarvil',
+                'password' => Hash::make('profesor1')
             ],
             [
-                'name' => 'Jorge',
-                'email' => 'jorgebar@ejemplo.com',
-                'user_name' => 'jorrbar',
-                'password' => Hash::make('jorbar')
+                'name' => 'joaquinma',
+                'email' => 'monterona@ejemplo.com',
+                'user_name' => 'monterona',
+                'password' => Hash::make('profesor1')
+            ],
+            [
+                'name' => 'mercedes',
+                'email' => 'mflober@ejemplo.com',
+                'user_name' => 'mflober',
+                'password' => Hash::make('profesor1')
+            ],
+            [
+                'name' => 'juan',
+                'email' => 'juagommay@ejemplo.com',
+                'user_name' => 'juagonmay',
+                'password' => Hash::make('profesor1')
             ]
         ];
 

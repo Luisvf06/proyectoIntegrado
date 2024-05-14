@@ -13,99 +13,40 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
-{
-    $users=User::all();
-    return response()->json($users, 200);
-    //return new UserCollection(User::latest()->paginate());
-}
-    public function show($id)
-    {
-        $user= User::find($id);
-        return  response()->json($user, 200);
-    }
-
-    public function update(UserRequest $request, $id)
-    {
-        $user=User::find($id);
-        $user->name=$request->name;
-        $user->email=$request->email;
-        $user->professor_cod=$request->professor_cod;
-        $user->password=$request->password;
-        $user->user_name=$request->user_name;
-        $user->rol=$request->rol;
-        $user->save();
-        return response()->json(['message' => 'Ausencia actualizada correctamente'], 200);
-    }
-    public function destroy($id)
-    {
-        $user=User::find($id)->delete();
-        return response()->json(['message' => 'Ausencia eliminada correctamente'], 200);
-    }
     /**
-     * Retrieve a user by ID.
+     * Guarda los usuarios a partir del XML procesado.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function getUser($id)
-    {
-        $user = User::find($id);
-
-        if ($user) {
-            return response()->json([
-                'status' => true,
-                'message' => 'User found.',
-                'data' => $user
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found.'
-            ], 404);
-        }
-    }
-
-    protected function normalizarTexto($texto) {
-        $texto = strtolower($texto);
-        $texto = str_replace(
-            ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü'],
-            ['a', 'e', 'i', 'o', 'u', 'n', 'u'],
-            $texto
-        );
-        return $texto;
-    }
-
     public function store(Request $request)
     {
-        // Lee el archivo XML
-        $xml = file_get_contents($request->file('xml')->getRealPath());
-        $reader = XmlReader::fromString($xml);
+        $data = $request->input('data');
+        \Log::info('Datos recibidos en UserController:', ['data' => $data]);
+
         // Por defecto doy el rol profesor a todos
         $roleProfesorado = Role::where('name', 'profesorado')->first();
         // Verificar si el rol existe
         if (!$roleProfesorado) {
             return response()->json(['error' => 'Rol de "profesorado" no encontrado.'], 404);
         }
-        // Obtengo los datos de los usuarios
-        $users = $reader->xpathValue('//profesores');
-    
+
         // Iniciar una lista de usuarios creados para la respuesta
         $createdUsers = [];
-    
-        foreach ($users as $user) {
+
+        foreach ($data as $user) {
+            \Log::info('Procesando usuario:', ['usuario' => $user]);
             // Primer nombre del profesor
-            $fullName = $user->xpathValue('name')->get();
+            $fullName = $user->xpathValue('column[@name="nombre"]')->sole();
             $nameParts = explode(' ', trim($fullName));
             $firstName = $nameParts[0];
-    
+
             // Uso el primer nombre y el año actual para generar una contraseña
-            $password = $firstName . Carbon::now()->year;
-            $password = Hash::make($password);
-    
+            $password = Hash::make($firstName . Carbon::now()->year);
+
             // Obtengo el nombre completo del profesor
-            $name = $user->xpathValue('nombre')->get();
-    
+            $name = $user->xpathValue('column[@name="nombre"]')->sole();
+
             // Creo valores no válidos que puede contener el campo nombre para que no se incluyan
             $email_no_valido = ["del", "de la", "de los", "de las", "de"];
             // Creo un array con el nombre y apellidos, ambos contenidos en el campo nombre
@@ -115,50 +56,61 @@ class UserController extends Controller
                 $parteNormalizada = $this->normalizarTexto($parte);
                 return !in_array($parteNormalizada, $email_no_valido) && strlen($parteNormalizada) > 1;
             });
+
             $email = '';
             if (count($partesFiltradas) >= 2) {
                 // Se crea el correo usando las partes validas
                 $email = $this->normalizarTexto(array_shift($partesFiltradas)) . '.' . $this->normalizarTexto(array_shift($partesFiltradas)) . '@iespoligonosur.org';
-            }else{
-                $email = $firstName . "2024@iespoligonosur.org";
+            } else {
+                $email = $this->normalizarTexto($firstName) . "2024@iespoligonosur.org";
             }
-    
+
             $user_name = '';
             if (count($partesFiltradas) >= 2) {
                 $user_name = $this->normalizarTexto($partesFiltradas[0]) . $this->normalizarTexto($partesFiltradas[1]);
             } else {
                 $user_name = $this->normalizarTexto($firstName);
             }
-    
+
+            \Log::info('Creando nuevo usuario:', ['name' => $name, 'email' => $email, 'username' => $user_name]);
+
             // Crear un nuevo objeto User con valores predeterminados para ciertos atributos
             $newUser = User::create([
                 'name' => $name,
                 'email' => $email,
                 'password' => $password,
-                'username' => $user_name,
+                'user_name' => $user_name,
                 'rol' => 'profesor'
             ]);
-    
+
             // Asignar el rol al usuario
             $newUser->roles()->attach($roleProfesorado->id);
             // Activar el usuario y guardar
             $newUser->active = true;
             $newUser->save();
-    
+
             // Agregar al array de usuarios creados
             $createdUsers[] = $newUser;
         }
-    
+
         // Retornar respuesta JSON
-        return response()->json(['success' => true, 'created_users' => $createdUsers,'token'=>$user->createToken("API TOKEN")->plainTextToken], 201);
+        return response()->json(['success' => true, 'created_users' => $createdUsers, 'token' => $createdUsers[0]->createToken("API TOKEN")->plainTextToken], 201);
     }
-    
-    public function getAuthenticatedUser(Request $request)
-{
-    $user = $request->user(); 
 
-    return response()->json($user);
-}
-
-
+    /**
+     * Normaliza el texto a minúsculas y reemplaza caracteres especiales.
+     *
+     * @param string $texto
+     * @return string
+     */
+    protected function normalizarTexto($texto)
+    {
+        $texto = strtolower($texto);
+        $texto = str_replace(
+            ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü'],
+            ['a', 'e', 'i', 'o', 'u', 'n', 'u'],
+            $texto
+        );
+        return $texto;
+    }
 }

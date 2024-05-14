@@ -7,41 +7,66 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\{Horario, User, Aula, Franja, Grupo, Asignatura, Periodo};
+
 class HorarioController extends Controller
 {
-    // Creación de horarios
-    public function generarHorarios(Request $request) {
-        $xml = file_get_contents($request->file('xml')->getRealPath());
-        $reader = XmlReader::fromString($xml);
-        $horarios = $reader->xpathValue('//horarios');
+    public function generarHorarios(Request $request)
+    {
+        $data = $request->input('data');
 
         DB::beginTransaction();
         try {
-            foreach ($horarios as $horario) {
-                $profesorCod = $horario->xpathValue('professor_cod')->get();
-                $profesorId = User::where('codigo', $profesorCod)->first()->id;
+            foreach ($data as $horario) {
+                $profesorCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $profesor = User::where('codigo', $profesorCod)->first();
+                if (!$profesor) {
+                    throw new \Exception('Profesor no encontrado: ' . $profesorCod);
+                }
 
-                $aulaId = Aula::where('codigo', $horario->xpathValue('aula_cod')->get())->first()->id;
-                $franjaId = Franja::where('codigo', $horario->xpathValue('franja_cod')->get())->first()->id;
-                $grupoId = Grupo::where('codigo', $horario->xpathValue('grupo_cod')->get())->first()->id;
-                $asignaturaId = Asignatura::where('codigo', $horario->xpathValue('asignatura_cod')->get())->first()->id;
-                $periodoId = Periodo::where('codigo', $horario->xpathValue('periodo_cod')->get())->first()->id;
+                $aulaCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $aula = Aula::where('codigo', $aulaCod)->first();
+                if (!$aula) {
+                    throw new \Exception('Aula no encontrada: ' . $aulaCod);
+                }
+
+                $franjaCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $franja = Franja::where('codigo', $franjaCod)->first();
+                if (!$franja) {
+                    throw new \Exception('Franja no encontrada: ' . $franjaCod);
+                }
+
+                $grupoCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $grupo = Grupo::where('codigo', $grupoCod)->first();
+                if (!$grupo) {
+                    throw new \Exception('Grupo no encontrado: ' . $grupoCod);
+                }
+
+                $asignaturaCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $asignatura = Asignatura::where('codigo', $asignaturaCod)->first();
+                if (!$asignatura) {
+                    throw new \Exception('Asignatura no encontrada: ' . $asignaturaCod);
+                }
+
+                $periodoCod = $horario->xpathValue('column[@name="id"]')->sole();
+                $periodo = Periodo::where('codigo', $periodoCod)->first();
+                if (!$periodo) {
+                    throw new \Exception('Periodo no encontrado: ' . $periodoCod);
+                }
 
                 Horario::create([
-                    'profesor_id' => $profesorId,
-                    'aula_id' => $aulaId,
-                    'franja_id' => $franjaId,
-                    'grupo_id' => $grupoId,
-                    'asignatura_id' => $asignaturaId,
-                    'periodo_id' => $periodoId
+                    'user_id' => $profesor->id,
+                    'aula_id' => $aula->id,
+                    'franja_id' => $franja->id,
+                    'grupo_id' => $grupo->id,
+                    'asignatura_id' => $asignatura->id,
+                    'periodo_id' => $periodo->id
                 ]);
             }
             DB::commit();
+            return response()->json(['success' => 'Horarios creados correctamente'], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Error al procesar el archivo XML: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['success' => 'Horarios creados correctamente'], 200);
     }
 }
