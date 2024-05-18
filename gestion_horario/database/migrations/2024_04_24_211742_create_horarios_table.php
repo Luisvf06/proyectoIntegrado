@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->integer('horario_cod');
             $table->char('dia',1);
-            $table->timestamps();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('asignatura_id');
             $table->unsignedBigInteger('aula_id');
             $table->unsignedBigInteger('franja_id');
             $table->unsignedBigInteger('grupo_id');
             $table->unsignedBigInteger('periodo_id');
+            $table->timestamps();
         });
     }
 

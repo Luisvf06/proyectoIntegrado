@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('aulas', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->integer('aula_cod');
+            $table->string('aula_cod'); // Cambiado de integer a string
             $table->string('descripcion');
         });
     }
@@ -27,3 +27,4 @@ return new class extends Migration
         Schema::dropIfExists('aulas');
     }
 };
+

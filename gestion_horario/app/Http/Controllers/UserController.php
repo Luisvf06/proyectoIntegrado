@@ -1,43 +1,42 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Role;
-use App\Models\User; 
-use Carbon\Carbon;
-use Saloon\XmlWrangler\XmlReader;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use App\Http\Requests\UserRequest;
 
+use App\Models\Role;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     /**
-     * Guarda los usuarios a partir del XML procesado.
+     * Inserta usuarios basándose en los datos extraídos del XML.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param array $profesores
+     * @return void
      */
-    public function store(Request $request)
+    public function insertUsers(array $profesores)
     {
-        $data = $request->input('data');
-        \Log::info('Datos recibidos en UserController:', ['data' => $data]);
+        Log::info('Datos de profesores recibidos:', ['profesores' => $profesores]);
 
         // Por defecto doy el rol profesor a todos
         $roleProfesorado = Role::where('name', 'profesorado')->first();
         // Verificar si el rol existe
         if (!$roleProfesorado) {
-            return response()->json(['error' => 'Rol de "profesorado" no encontrado.'], 404);
+            Log::error('Rol de "profesorado" no encontrado.');
+            return;
         }
 
         // Iniciar una lista de usuarios creados para la respuesta
         $createdUsers = [];
 
-        foreach ($data as $user) {
-            \Log::info('Procesando usuario:', ['usuario' => $user]);
+        foreach ($profesores as $profesor) {
+            Log::info('Procesando profesor:', ['profesor' => $profesor]);
+            
             // Primer nombre del profesor
-            $fullName = $user->xpathValue('column[@name="nombre"]')->sole();
+            $fullName = $profesor[1];
             $nameParts = explode(' ', trim($fullName));
             $firstName = $nameParts[0];
 
@@ -45,7 +44,7 @@ class UserController extends Controller
             $password = Hash::make($firstName . Carbon::now()->year);
 
             // Obtengo el nombre completo del profesor
-            $name = $user->xpathValue('column[@name="nombre"]')->sole();
+            $name = $fullName;
 
             // Creo valores no válidos que puede contener el campo nombre para que no se incluyan
             $email_no_valido = ["del", "de la", "de los", "de las", "de"];
@@ -72,7 +71,7 @@ class UserController extends Controller
                 $user_name = $this->normalizarTexto($firstName);
             }
 
-            \Log::info('Creando nuevo usuario:', ['name' => $name, 'email' => $email, 'username' => $user_name]);
+            Log::info('Creando nuevo usuario:', ['name' => $name, 'email' => $email, 'username' => $user_name]);
 
             // Crear un nuevo objeto User con valores predeterminados para ciertos atributos
             $newUser = User::create([
@@ -80,7 +79,7 @@ class UserController extends Controller
                 'email' => $email,
                 'password' => $password,
                 'user_name' => $user_name,
-                'rol' => 'profesor'
+                'professor_cod' => $profesor[0] // Asegúrate de que esto se ajuste a tu esquema de base de datos
             ]);
 
             // Asignar el rol al usuario

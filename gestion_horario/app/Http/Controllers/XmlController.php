@@ -3,84 +3,109 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\AulaController;
-use App\Http\Controllers\PeriodoController;
 use App\Http\Controllers\FranjaController;
+use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\HorarioController;
-use Saloon\XmlWrangler\XmlReader;
+use App\Http\Controllers\PeriodoController;
 
 class XmlController extends Controller
 {
-    protected $userController;
-    protected $grupoController;
-    protected $asignaturaController;
-    protected $aulaController;
-    protected $periodoController;
-    protected $franjaController;
-    protected $horarioController;
-
-    public function __construct(
-        UserController $userController,
-        GrupoController $grupoController,
-        AsignaturaController $asignaturaController,
-        AulaController $aulaController,
-        PeriodoController $periodoController,
-        FranjaController $franjaController,
-        HorarioController $horarioController
-    ) {
-        $this->userController = $userController;
-        $this->grupoController = $grupoController;
-        $this->asignaturaController = $asignaturaController;
-        $this->aulaController = $aulaController;
-        $this->periodoController = $periodoController;
-        $this->franjaController = $franjaController;
-        $this->horarioController = $horarioController;
-    }
-
     public function uploadXML(Request $request)
     {
-        // Valida el  XML
-        $request->validate([
-            'xml' => 'required|file|mimes:xml'
-        ]);
+        try {
+            // Verificar si se ha subido un archivo
+            if (!$request->hasFile('xml')) {
+                throw new \Exception('No XML file uploaded.');
+            }
 
-        // Carga el XML
-        $xmlFile = $request->file('xml');
-        $xmlContent = file_get_contents($xmlFile->getRealPath());
+            // Obtener el archivo subido
+            $file = $request->file('xml');
 
-        // Procesa el contenido 
-        $reader = XmlReader::fromString($xmlContent);
+            // Leer el contenido del archivo
+            $xmlString = file_get_contents($file->getPathname());
+            $xml = simplexml_load_string($xmlString, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-        $usersData = $reader->xpathValue('//table[@name="profesores"]/row')->get();
-        $gruposData = $reader->xpathValue('//table[@name="grupos"]/row')->get();
-        $asignaturasData = $reader->xpathValue('//table[@name="asignaturas"]/row')->get();
-        $aulasData = $reader->xpathValue('//table[@name="aulas"]/row')->get();
-        $periodosData = $reader->xpathValue('//table[@name="periodos"]/row')->get();
-        $franjasData = $reader->xpathValue('//table[@name="franjas"]/row')->get();
-        $horariosData = $reader->xpathValue('//table[@name="horarios"]/row')->get();
+            if (!$xml) {
+                throw new \Exception('Failed to load XML.');
+            }
 
-        //Logs
-        \Log::info('Usuarios:', ['data' => $usersData]);
-        \Log::info('Grupos:', ['data' => $gruposData]);
-        \Log::info('Asignaturas:', ['data' => $asignaturasData]);
-        \Log::info('Aulas:', ['data' => $aulasData]);
-        \Log::info('Periodos:', ['data' => $periodosData]);
-        \Log::info('Franjas:', ['data' => $franjasData]);
-        \Log::info('Horarios:', ['data' => $horariosData]);
+            // Log the entire XML structure
+            Log::info('XML Structure:', ['xml' => $xml->asXML()]);
 
-        //Llamada a los métodos de lso controladores con modelos para su registro
-        $this->userController->store(new Request(['data' => $usersData]));
-        $this->grupoController->generarGrupos(new Request(['data' => $gruposData]));
-        $this->asignaturaController->generarAsignaturas(new Request(['data' => $asignaturasData]));
-        $this->aulaController->generarAulas(new Request(['data' => $aulasData]));
-        $this->periodoController->generarPeriodos(new Request(['data' => $periodosData]));
-        $this->franjaController->generarFranjas(new Request(['data' => $franjasData]));
-        $this->horarioController->generarHorarios(new Request(['data' => $horariosData]));
+            // Extracting data for each table
+            $asignaturas = $this->extractTableData($xml, 'asignaturas');
+            $grupos = $this->extractTableData($xml, 'grupos');
+            $profesores = $this->extractTableData($xml, 'profesores');
+            $aulas = $this->extractTableData($xml, 'aulas');
+            $franjas = $this->extractTableData($xml, 'franjas');
+            $horarios = $this->extractTableData($xml, 'horarios');
+            $periodos = $this->extractTableData($xml, 'periodos');
 
-        return response()->json(['message' => 'El archivo XML ha sido procesado correctamente.']);
+            // Log the extracted data
+            Log::info('Asignaturas Data:', ['data' => $asignaturas]);
+            Log::info('Grupos Data:', ['data' => $grupos]);
+            Log::info('Profesores Data:', ['data' => $profesores]);
+            Log::info('Aulas Data:', ['data' => $aulas]);
+            Log::info('Franjas Data:', ['data' => $franjas]);
+            Log::info('Horarios Data:', ['data' => $horarios]);
+            Log::info('Periodos Data:', ['data' => $periodos]);
+
+            // Insert data into corresponding tables
+            $userController = new UserController();
+            $userController->insertUsers($profesores);
+
+            $asignaturaController = new AsignaturaController();
+            $asignaturaController->insertAsignaturas($asignaturas);
+
+            $aulaController = new AulaController();
+            $aulaController->insertAulas($aulas);
+
+            $franjaController = new FranjaController();
+            $franjaController->insertFranjas($franjas);
+
+            $grupoController = new GrupoController();
+            $grupoController->insertGrupos($grupos);
+
+            $horarioController = new HorarioController();
+            $horarioController->insertHorarios($horarios);
+
+            $periodoController = new PeriodoController();
+            $periodoController->insertPeriodos($periodos);
+
+            return response()->json([
+                'success' => 'XML parsed successfully',
+                'asignaturas' => $asignaturas,
+                'grupos' => $grupos,
+                'profesores' => $profesores,
+                'aulas' => $aulas,
+                'franjas' => $franjas,
+                'horarios' => $horarios,
+                'periodos' => $periodos
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error parsing XML: ' . $e->getMessage());
+            return response()->json(['error' => 'Error parsing XML: ' . $e->getMessage()], 400);
+        }
+    }
+
+    private function extractTableData($xml, $tableName)
+    {
+        $result = [];
+        foreach ($xml->database->table as $table) {
+            if ((string)$table['name'] === $tableName) {
+                $columns = [];
+                foreach ($table->column as $column) {
+                    $columns[] = (string)$column;
+                }
+                $result[] = $columns;
+            }
+        }
+        return $result;
     }
 }
+

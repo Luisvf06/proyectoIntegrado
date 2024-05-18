@@ -1,37 +1,23 @@
 <?php
 
 namespace App\Http\Controllers;
-use Saloon\XmlWrangler\XmlReader;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\Grupo;
 
+use App\Models\Grupo;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class GrupoController extends Controller
 {
-    public function generarGrupos(Request $request)
+    public function insertGrupos(array $grupos)
     {
-        $data = $request->input('data');
+        Log::info('Datos de grupos recibidos:', ['grupos' => $grupos]);
 
-        DB::beginTransaction();
-        try {
-            foreach ($data as $grupo) {
-                $codigo = $grupo->xpathValue('column[@name="grupo_cod"]')->sole();
-                $descripcion = $grupo->xpathValue('column[@name="descripcion"]')->sole();
-
-                if (!Grupo::where('codigo', $codigo)->exists()) {
-                    Grupo::create([
-                        'codigo' => $codigo,
-                        'descripcion' => $descripcion
-                    ]);
-                }
-            }
-            DB::commit();
-            return response()->json(['success' => 'Grupos creados correctamente'], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al procesar el archivo XML: ' . $e->getMessage()], 500);
+        foreach ($grupos as $grupo) {
+            Grupo::create([
+                'grupo_cod' => $grupo[0],
+                'descripcion' => $grupo[1]
+            ]);
         }
     }
 }
+

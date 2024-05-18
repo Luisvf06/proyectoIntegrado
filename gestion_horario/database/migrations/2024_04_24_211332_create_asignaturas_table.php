@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('asignaturas', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
-            $table->string('descripcion');
             $table->string('asignatura_cod');
+            $table->string('descripcion');
+            $table->timestamps();
         });
     }
 

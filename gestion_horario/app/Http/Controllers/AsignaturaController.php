@@ -1,38 +1,23 @@
 <?php
 
 namespace App\Http\Controllers;
-use Carbon\Carbon;
-use Saloon\XmlWrangler\XmlReader;//biblioteca para leer xml
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
-use App\Models\Asignatura; 
 
+use App\Models\Asignatura;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AsignaturaController extends Controller
 {
-    public function generarAsignaturas(Request $request)
+    public function insertAsignaturas(array $asignaturas)
     {
-        $data = $request->input('data');
+        Log::info('Datos de asignaturas recibidos:', ['asignaturas' => $asignaturas]);
 
-        DB::beginTransaction();
-        try {
-            foreach ($data as $asignatura) {
-                $codigo = $asignatura->xpathValue('column[@name="asignatura_cod"]')->sole();
-                $descripcion = $asignatura->xpathValue('column[@name="descripcion"]')->sole();
-
-                if (!Asignatura::where('codigo', $codigo)->exists()) {
-                    Asignatura::create([
-                        'codigo' => $codigo,
-                        'descripcion' => $descripcion
-                    ]);
-                }
-            }
-            DB::commit();
-            return response()->json(['success' => 'Asignaturas creadas correctamente'], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al procesar el archivo XML: ' . $e->getMessage()], 500);
+        foreach ($asignaturas as $asignatura) {
+            Asignatura::create([
+                'asignatura_cod' => $asignatura[0],
+                'descripcion' => $asignatura[1]
+            ]);
         }
     }
 }
+

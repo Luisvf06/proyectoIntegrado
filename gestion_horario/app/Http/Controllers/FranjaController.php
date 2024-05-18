@@ -1,41 +1,24 @@
 <?php
 
 namespace App\Http\Controllers;
-use Carbon\Carbon;
-use Saloon\XmlWrangler\XmlReader;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
+
 use App\Models\Franja;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class FranjaController extends Controller
 {
-    public function generarFranjas(Request $request)
+    public function insertFranjas(array $franjas)
     {
-        $data = $request->input('data');
+        Log::info('Datos de franjas recibidos:', ['franjas' => $franjas]);
 
-        DB::beginTransaction();
-        try {
-            foreach ($data as $franja) {
-                $codigo = $franja->xpathValue('column[@name="franja_cod"]')->sole();
-                $descripcion = $franja->xpathValue('column[@name="descripcion"]')->sole();
-                $horaDesde = $franja->xpathValue('column[@name="hora_desde"]')->sole();
-                $horaHasta = $franja->xpathValue('column[@name="hora_hasta"]')->sole();
-
-                if (!Franja::where('codigo', $codigo)->exists()) {
-                    Franja::create([
-                        'codigo' => $codigo,
-                        'descripcion' => $descripcion,
-                        'hora_desde' => $horaDesde,
-                        'hora_hasta' => $horaHasta
-                    ]);
-                }
-            }
-            DB::commit();
-            return response()->json(['success' => 'Franjas creadas correctamente'], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al procesar el archivo XML: ' . $e->getMessage()], 500);
+        foreach ($franjas as $franja) {
+            Franja::create([
+                'codigo' => $franja[0],
+                'descripcion' => $franja[1],
+                'hora_desde' => $franja[2],
+                'hora_hasta' => $franja[3]
+            ]);
         }
     }
 }
