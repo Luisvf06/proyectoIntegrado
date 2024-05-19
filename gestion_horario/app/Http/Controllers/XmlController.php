@@ -17,16 +17,13 @@ class XmlController extends Controller
 {
     public function uploadXML(Request $request)
     {
+        set_time_limit(120);
         try {
-            // Verificar si se ha subido un archivo
             if (!$request->hasFile('xml')) {
                 throw new \Exception('No XML file uploaded.');
             }
 
-            // Obtener el archivo subido
             $file = $request->file('xml');
-
-            // Leer el contenido del archivo
             $xmlString = file_get_contents($file->getPathname());
             $xml = simplexml_load_string($xmlString, 'SimpleXMLElement', LIBXML_NOCDATA);
 
@@ -34,10 +31,8 @@ class XmlController extends Controller
                 throw new \Exception('Failed to load XML.');
             }
 
-            // Log the entire XML structure
             Log::info('XML Structure:', ['xml' => $xml->asXML()]);
 
-            // Extracting data for each table
             $asignaturas = $this->extractTableData($xml, 'asignaturas');
             $grupos = $this->extractTableData($xml, 'grupos');
             $profesores = $this->extractTableData($xml, 'profesores');
@@ -46,7 +41,6 @@ class XmlController extends Controller
             $horarios = $this->extractTableData($xml, 'horarios');
             $periodos = $this->extractTableData($xml, 'periodos');
 
-            // Log the extracted data
             Log::info('Asignaturas Data:', ['data' => $asignaturas]);
             Log::info('Grupos Data:', ['data' => $grupos]);
             Log::info('Profesores Data:', ['data' => $profesores]);
@@ -55,7 +49,6 @@ class XmlController extends Controller
             Log::info('Horarios Data:', ['data' => $horarios]);
             Log::info('Periodos Data:', ['data' => $periodos]);
 
-            // Insert data into corresponding tables
             $userController = new UserController();
             $userController->insertUsers($profesores);
 
@@ -71,11 +64,11 @@ class XmlController extends Controller
             $grupoController = new GrupoController();
             $grupoController->insertGrupos($grupos);
 
-            $horarioController = new HorarioController();
-            $horarioController->insertHorarios($horarios);
-
             $periodoController = new PeriodoController();
             $periodoController->insertPeriodos($periodos);
+            
+            $horarioController = new HorarioController();
+            $horarioController->insertHorarios($horarios);
 
             return response()->json([
                 'success' => 'XML parsed successfully',
@@ -84,8 +77,9 @@ class XmlController extends Controller
                 'profesores' => $profesores,
                 'aulas' => $aulas,
                 'franjas' => $franjas,
-                'horarios' => $horarios,
-                'periodos' => $periodos
+                'periodos' => $periodos,
+                'horarios' => $horarios
+                
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error parsing XML: ' . $e->getMessage());
@@ -108,4 +102,3 @@ class XmlController extends Controller
         return $result;
     }
 }
-

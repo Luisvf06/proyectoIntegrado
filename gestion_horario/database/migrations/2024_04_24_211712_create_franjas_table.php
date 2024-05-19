@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('franjas', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo'); // Agregado
+            $table->integer('franja_cod'); // Agregado
             $table->string('descripcion');
             $table->time('hora_desde');
             $table->time('hora_hasta');

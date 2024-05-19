@@ -13,11 +13,15 @@ class GrupoController extends Controller
         Log::info('Datos de grupos recibidos:', ['grupos' => $grupos]);
 
         foreach ($grupos as $grupo) {
-            Grupo::create([
-                'grupo_cod' => $grupo[0],
-                'descripcion' => $grupo[1]
-            ]);
+            try {
+                Grupo::create([
+                    'grupo_cod' => $grupo[0],
+                    'descripcion' => $grupo[1]
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear grupo: ' . $e->getMessage(), ['grupo' => $grupo]);
+                continue;
+            }
         }
     }
 }
-

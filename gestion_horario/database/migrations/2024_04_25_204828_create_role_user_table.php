@@ -17,6 +17,10 @@ return new class extends Migration
             $table->unsignedBigInteger('role_id');
             $table->string('added_by')->nullable();
             $table->timestamps();
+
+            // Agregar claves foráneas
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
         });
     }
 
@@ -28,3 +32,4 @@ return new class extends Migration
         Schema::dropIfExists('role_user');
     }
 };
+

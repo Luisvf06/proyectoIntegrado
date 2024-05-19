@@ -13,12 +13,17 @@ class PeriodoController extends Controller
         Log::info('Datos de periodos recibidos:', ['periodos' => $periodos]);
 
         foreach ($periodos as $periodo) {
-            Periodo::create([
-                'periodo_cod' => $periodo[0],
-                'descripcion' => $periodo[1],
-                'fecha_desde' => $periodo[2],
-                'fecha_hasta' => $periodo[3]
-            ]);
+            try {
+                Periodo::create([
+                    'periodo_cod' => $periodo[0],
+                    'descripcion' => $periodo[1],
+                    'fecha_desde' => $periodo[2],
+                    'fecha_hasta' => $periodo[3]
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear periodo: ' . $e->getMessage(), ['periodo' => $periodo]);
+                continue;
+            }
         }
     }
 }

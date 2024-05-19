@@ -9,7 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -34,9 +36,9 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $appends = [
-        'profile_photo_url',
-    ];
+    // protected $appends = [
+    //     'profile_photo_url',
+    // ];
 
     /**
      * Get the attributes that should be cast.
@@ -50,8 +52,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function roles():HasMany{
-        return $this->HasMany(Role::class);
+    public function roles():BelongsToMany{
+        return $this->BelongsToMany(Role::class);
     }
 
     public function horarios():HasMany{

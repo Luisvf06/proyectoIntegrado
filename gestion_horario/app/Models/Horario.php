@@ -18,33 +18,34 @@ class Horario extends Model
         return $this->hasMany(Ausencia::class);
     }
 
-    public function franjas(): BelongsTo
+    public function franja(): BelongsTo
     {
-        return $this->belongsTo(Franja::class);
+        return $this->belongsTo(Franja::class, 'franja_id');
     }
 
-    public function asignaturas(): BelongsTo
+    public function asignatura(): BelongsTo
     {
-        return $this->belongsTo(Asignatura::class);
+        return $this->belongsTo(Asignatura::class, 'asignatura_id');
     }
 
-    public function grupos(): BelongsTo
+    public function grupo(): BelongsTo
     {
-        return $this->belongsTo(Grupo::class);
+        return $this->belongsTo(Grupo::class, 'grupo_id');
     }
 
-    public function users(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function aulas(): BelongsTo
+    public function aula(): BelongsTo
     {
-        return $this->belongsTo(Aula::class);
+        return $this->belongsTo(Aula::class, 'aula_id');
     }
 
-    public function periodos(): BelongsTo
+    public function periodo(): BelongsTo
     {
-        return $this->belongsTo(Periodo::class);
+        return $this->belongsTo(Periodo::class, 'periodo_id');
     }
 }
+

@@ -13,11 +13,15 @@ class AsignaturaController extends Controller
         Log::info('Datos de asignaturas recibidos:', ['asignaturas' => $asignaturas]);
 
         foreach ($asignaturas as $asignatura) {
-            Asignatura::create([
-                'asignatura_cod' => $asignatura[0],
-                'descripcion' => $asignatura[1]
-            ]);
+            try {
+                Asignatura::create([
+                    'asignatura_cod' => $asignatura[0],
+                    'descripcion' => $asignatura[1]
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear asignatura: ' . $e->getMessage(), ['asignatura' => $asignatura]);
+                continue;
+            }
         }
     }
 }
-

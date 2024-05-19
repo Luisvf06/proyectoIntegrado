@@ -13,10 +13,15 @@ class AulaController extends Controller
         Log::info('Datos de aulas recibidos:', ['aulas' => $aulas]);
 
         foreach ($aulas as $aula) {
-            Aula::create([
-                'aula_cod' => $aula[0],
-                'descripcion' => $aula[1]
-            ]);
+            try {
+                Aula::create([
+                    'aula_cod' => $aula[0],
+                    'descripcion' => $aula[1]
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear aula: ' . $e->getMessage(), ['aula' => $aula]);
+                continue;
+            }
         }
     }
 }
