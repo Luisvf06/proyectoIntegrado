@@ -6,7 +6,7 @@ use Illuminate\Http\Requests;
 use App\Models\User;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
-use Auth;
+//use Auth;
 class AuthController extends Controller
 {
     // public function createUser(CreateUserRequest $request){
