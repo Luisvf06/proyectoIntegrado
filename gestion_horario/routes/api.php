@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->get('/user', [UserController::class, 'getAuth
 Route::post('/login', [LoginController::class, 'login'])->name('login');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    
     Route::resource('/users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
     Route::resource('/ausencias', AusenciaController::class);
     Route::resource('/asignaturas', AsignaturaController::class);
