@@ -12,8 +12,8 @@ import Layout from '../layouts/Layout.astro';
     <button id="varios-dias-btn" type="button" class="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800">Varios días</button>
 </div>
 
-<!--Menú de horas y calendario -->
-<div id="unas-horas-container" class="hidden flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+<!--Menú de horas y calendario 1 fecha-->
+<div id="unas-horas-container" style="display: none;" class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
     <div id="rango-horas">
         <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">Seleccione la hora u horas en las que no estará en el centro</h3>
         <ul id="checkboxList" class="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -49,8 +49,8 @@ import Layout from '../layouts/Layout.astro';
         </calendar-date>
     </div>
 </div>
-
-<div id="todo-el-dia-container" class="hidden flex justify-center">
+<!-- Calendario para un día completo -->
+<div id="todo-el-dia-container" style="display: none;" class="flex justify-center">
     <div id="calendar3" class="card p-4 bg-white shadow-lg rounded-lg">
         <calendar-date months="1" 
           min-date="{minDate.toISOString()}" 
@@ -81,8 +81,8 @@ import Layout from '../layouts/Layout.astro';
         </calendar-date>
     </div>
 </div>
-
-<div id="varios-dias-container" class="hidden flex justify-center">
+<!--Calendario para varios días completos -->
+<div id="varios-dias-container" style="display: none;" class="flex justify-center">
     <div id="calendar2" class="card p-4 bg-white shadow-lg rounded-lg">
         <calendar-range months="1" 
           min-date="{minDate.toISOString()}" 
@@ -113,8 +113,8 @@ import Layout from '../layouts/Layout.astro';
         </calendar-range>
     </div>
 </div>
-
-<div id="crear-ausencia-container" class="hidden flex justify-center mt-4">
+<!--Botón envío datos -->
+<div id="crear-ausencia-container" style="display: none;" class="flex justify-center mt-4">
     <button id="crear-ausencia-btn" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Crear Ausencia</button>
 </div>
 
@@ -133,7 +133,7 @@ import Layout from '../layouts/Layout.astro';
     const todoElDiaBtn = document.getElementById('todo-el-dia-btn');
     const variosDiasBtn = document.getElementById('varios-dias-btn');
 
-    const token = localStorage.getItem('access_token'); 
+    const token = localStorage.getItem('access_token'); //Acceso al token de usuario
 
     if (!token) {
       console.error('No se encontró el token de autenticación.');
@@ -143,39 +143,39 @@ import Layout from '../layouts/Layout.astro';
 
     let selectedDate = false;
     let selectedHour = false;
-
+    //Muestro según qué elemento del html según el botón seleccionado
     const checkToShowCrearAusencia = () => {
       if (selectedDate && selectedHour) {
-        crearAusenciaContainer.classList.remove('hidden');
+        crearAusenciaContainer.style.display = 'flex';
       } else {
-        crearAusenciaContainer.classList.add('hidden');
+        crearAusenciaContainer.style.display = 'none';
       }
     };
 
     unasHorasBtn.addEventListener('click', () => {
-      unasHorasContainer.classList.remove('hidden');
-      todoElDiaContainer.classList.add('hidden');
-      variosDiasContainer.classList.add('hidden');
+      unasHorasContainer.style.display = 'flex';
+      todoElDiaContainer.style.display = 'none';
+      variosDiasContainer.style.display = 'none';
       selectedDate = false;
       selectedHour = false;
       checkToShowCrearAusencia();
     });
 
     todoElDiaBtn.addEventListener('click', () => {
-      unasHorasContainer.classList.add('hidden');
-      todoElDiaContainer.classList.remove('hidden');
-      variosDiasContainer.classList.add('hidden');
+      unasHorasContainer.style.display = 'none';
+      todoElDiaContainer.style.display = 'flex';
+      variosDiasContainer.style.display = 'none';
       selectedDate = false;
-      selectedHour = true;
+      selectedHour = true; // Necesita seleccionar la fecha
       checkToShowCrearAusencia();
     });
 
     variosDiasBtn.addEventListener('click', () => {
-      unasHorasContainer.classList.add('hidden');
-      todoElDiaContainer.classList.add('hidden');
-      variosDiasContainer.classList.remove('hidden');
+      unasHorasContainer.style.display = 'none';
+      todoElDiaContainer.style.display = 'none';
+      variosDiasContainer.style.display = 'flex';
       selectedDate = false;
-      selectedHour = true;
+      selectedHour = true; // Necesita seleccionar el rango de fechas
       checkToShowCrearAusencia();
     });
 
@@ -185,6 +185,11 @@ import Layout from '../layouts/Layout.astro';
     });
 
     document.getElementById('calendar1').addEventListener('click', () => {
+      selectedDate = true;
+      checkToShowCrearAusencia();
+    });
+
+    document.getElementById('calendar3').addEventListener('click', () => {
       selectedDate = true;
       checkToShowCrearAusencia();
     });
