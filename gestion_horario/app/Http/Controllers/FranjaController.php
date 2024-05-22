@@ -26,5 +26,10 @@ class FranjaController extends Controller
             }
         }
     }
+
+    public function index()
+    {
+        return response()->json(Franja::all());
+    }
 }
 
