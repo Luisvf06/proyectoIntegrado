@@ -18,8 +18,8 @@ const user = [
       <form id="uploadForm" class="mb-4">
         <label for="file" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Adjunte el documento .xml:</label>
         <div class="flex">
-          <input type="file" id="file" name="xml" class="block w-2/3 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-          <button type="button" onclick="handleFileUpload()" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Cargar Archivo</button>
+          <input type="file" id="file" name="file" class="block w-2/3 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+          <button type="button" id="uploadButton" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700">Cargar Archivo</button>
         </div>
       </form>
     </div>
@@ -27,8 +27,8 @@ const user = [
       <div class="flex items-center">
         <select id="profesorSelect" name="user" class="block w-2/3 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mr-4">
           <option value="">Escoja un profesor</option>
-          {user.map(user => (
-            <option value={user.id}>{user.name}</option>
+          {user.map(u => (
+            <option value={u.id} key={u.id}>{u.name}</option>
           ))}
         </select>
         <EditButton id="editButton" style="display: none;" />
@@ -76,7 +76,44 @@ const user = [
   </div>
 
   <script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+      const uploadButton = document.getElementById('uploadButton');
+      uploadButton.addEventListener('click', handleFileUpload);
+
+      const profesorSelect = document.getElementById('profesorSelect');
+      const verFaltas = document.getElementById('verFaltas');
+      const verHorario = document.getElementById('verHorario');
+      const tablaFaltas = document.getElementById('tablaFaltas');
+      const tablaHorario = document.getElementById('tablaHorario');
+      const editButton = document.getElementById('editButton');
+      const deleteButton = document.getElementById('deleteButton');
+
+      profesorSelect.addEventListener('change', updateVisibility);
+      window.onload = updateVisibility;
+
+      verFaltas.addEventListener('click', () => {
+        tablaFaltas.style.display = 'block';
+        tablaHorario.style.display = 'none';
+      });
+
+      verHorario.addEventListener('click', () => {
+        tablaHorario.style.display = 'block';
+        tablaFaltas.style.display = 'none';
+      });
+
+      function updateVisibility() {
+        const isSelected = profesorSelect.value !== "";
+        verFaltas.style.display = isSelected ? 'block' : 'none';
+        verHorario.style.display = isSelected ? 'block' : 'none';
+        editButton.style.display = isSelected ? 'inline-block' : 'none';
+        deleteButton.style.display = isSelected ? 'inline-block' : 'none';
+        tablaFaltas.style.display = 'none';
+        tablaHorario.style.display = 'none';
+      }
+    });
+
     async function handleFileUpload() {
+      console.log('Inicio de carga del archivo');
       const fileInput = document.getElementById('file');
       const file = fileInput.files[0];
       if (!file) {
@@ -84,12 +121,22 @@ const user = [
         return;
       }
 
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        console.error('No se encontró el token de autenticación.');
+        alert('No se encontró el token de autenticación. Por favor, inicie sesión.');
+        return;
+      }
+
       const formData = new FormData();
-      formData.append('xml', file);
+      formData.append('file', file);
 
       try {
-        const response = await fetch('http://localhost:8080/api/upload-xml', {
+        const response = await fetch('/api/upload-xml', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData,
         });
 
@@ -98,43 +145,13 @@ const user = [
         }
 
         const result = await response.json();
-        alert('Archivo procesado: ' + result.message);
+        console.log('Archivo procesado:', result);
+        alert('Archivo procesado correctamente.');
       } catch (error) {
-        console.error('Error uploading file:', error);
+        console.error('Error al subir el archivo:', error);
         alert('Error al procesar el archivo: ' + error.message);
       }
     }
-
-    const profesorSelect = document.getElementById('profesorSelect');
-    const verFaltas = document.getElementById('verFaltas');
-    const verHorario = document.getElementById('verHorario');
-    const tablaFaltas = document.getElementById('tablaFaltas');
-    const tablaHorario = document.getElementById('tablaHorario');
-    const editButton = document.getElementById('editButton');
-    const deleteButton = document.getElementById('deleteButton');
-
-    function updateVisibility() {
-      const isSelected = profesorSelect.value !== "";
-      verFaltas.style.display = isSelected ? 'block' : 'none';
-      verHorario.style.display = isSelected ? 'block' : 'none';
-      editButton.style.display = isSelected ? 'inline-block' : 'none';
-      deleteButton.style.display = isSelected ? 'inline-block' : 'none';
-      tablaFaltas.style.display = 'none';
-      tablaHorario.style.display = 'none';
-    }
-
-    profesorSelect.addEventListener('change', updateVisibility);
-    window.onload = updateVisibility;
-
-    verFaltas.addEventListener('click', () => {
-      tablaFaltas.style.display = 'block';
-      tablaHorario.style.display = 'none';
-    });
-
-    verHorario.addEventListener('click', () => {
-      tablaHorario.style.display = 'block';
-      tablaFaltas.style.display = 'none';
-    });
   </script>
 </Layout>
 

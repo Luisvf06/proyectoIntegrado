@@ -19,11 +19,11 @@ class XmlController extends Controller
     {
         set_time_limit(120);
         try {
-            if (!$request->hasFile('xml')) {
+            if (!$request->hasFile('file')) {
                 throw new \Exception('No XML file uploaded.');
             }
 
-            $file = $request->file('xml');
+            $file = $request->file('file');
             $xmlString = file_get_contents($file->getPathname());
             $xml = simplexml_load_string($xmlString, 'SimpleXMLElement', LIBXML_NOCDATA);
 

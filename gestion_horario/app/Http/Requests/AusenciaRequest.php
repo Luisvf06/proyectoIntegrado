@@ -17,27 +17,16 @@ class AusenciaRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<string>|string>
      */
     public function rules(): array
     {
         return [
-            'fecha'=> 'required','date','after_or_equal:today',
-            function($attribute, $value, $fail) {
-                $year =Carbon::createFromFormat('Y-m-d', $value)->year;
-                if ($year != now()->year) {
-                    $fail('El año de la fecha debe ser el actual');
-                }
-            },
-            'hora'=> 'required','date_format:H:i',
-            function($attribute, $value, $fail) {
-            $hour = Carbon::createFromFormat('H:i', $value)->hour;
-            $init = Carbon::createFromTime(8,15);
-            $end = Carbon::createFromTime(21,15);
-            if (!$hour->between($init, $end,true)) {
-                $fail('La hora debe estar entre las 8:15 y las 21:15');
-                }
-            },
+            'user_id' => 'required|exists:users,id',
+            'horario_id' => 'required|exists:horarios,id',
+            'fechas' => 'required|array',
+            'fechas.*' => 'date|after_or_equal:today',
+            'hora' => 'nullable|date_format:H:i',
         ];
     }
 }
