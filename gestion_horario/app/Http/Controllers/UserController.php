@@ -135,12 +135,12 @@ class UserController extends Controller
     {
         try {
             // Obtener el usuario autenticado
-            $user = Auth::user();
-
+            $user = $request->user();
+    
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
-
+    
             return response()->json($user, 200);
         } catch (\Exception $e) {
             // Registrar el error y devolver una respuesta de error
@@ -148,4 +148,12 @@ class UserController extends Controller
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
+    public function getUser(Request $request)
+    {
+        $user = Auth::user();
+        return response()->json([
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
+    }   
 }

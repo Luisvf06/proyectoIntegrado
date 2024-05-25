@@ -17,7 +17,7 @@
 
 <script>
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import { loginUser } from '../utils/auth';
 
 export default {
   setup() {
@@ -28,10 +28,9 @@ export default {
     const errorMsg = ref('');
 
     const isLoggedIn = computed(() => {
-      return typeof window !== 'undefined' ? !!window.localStorage.getItem('access_token') : false;
+      return typeof window !== 'undefined' ? !!window.sessionStorage.getItem('authToken') : false;
     });
 
-    
     if (isLoggedIn.value && typeof window !== 'undefined') {
       window.location.href = '/horario';
     }
@@ -42,25 +41,19 @@ export default {
           user_name: user_name.value,
           password: password.value,
         });
-        //cambiar la direccion ip a la del servidor
-        const response = await axios.post('http://127.0.0.1:8080/api/login', {
-          user_name: user_name.value,
-          password: password.value,
-        });
-        console.log('Received login response:', response.data);
+
+        const response = await loginUser(user_name.value, password.value);
+        console.log('Received login response:', response);
+
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem('access_token', response.data.token);
+          window.sessionStorage.setItem('authToken', response.token);
           window.location.href = '/horario';
         }
       } catch (error) {
-        if (error.response) {
-          errorMsg.value = 'Error al iniciar sesión: ' + error.response.data.message;
-        } else {
-          errorMsg.value = 'Error al iniciar sesión: ' + error.message;
-        }
+        errorMsg.value = 'Error al iniciar sesión: ' + error.message;
         console.error(error);
       }
-    }
+    };
 
     return {
       title,
@@ -69,8 +62,8 @@ export default {
       password,
       login,
       errorMsg,
-      isLoggedIn
-    }
-  }
-}
+      isLoggedIn,
+    };
+  },
+};
 </script>

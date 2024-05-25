@@ -11,7 +11,7 @@ use App\Models\Asignatura;
 use App\Models\Periodo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Auth;
 class HorarioController extends Controller
 {
     public function insertHorarios(array $horarios)
@@ -83,7 +83,28 @@ class HorarioController extends Controller
             }
         }
     }
+
+    public function getUserHorario()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $horarios = Horario::with(['asignatura', 'franja'])
+            ->where('user_id', $user->id)
+            ->orderBy('franja_id')
+            ->get();
+
+        return response()->json([
+            'user' => $user,
+            'horarios' => $horarios,
+            'franjas' => $franjas
+        ]);
+    }
 }
+
 
 
 

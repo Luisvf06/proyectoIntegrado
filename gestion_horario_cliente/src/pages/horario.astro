@@ -1,55 +1,60 @@
 ---
+// src/pages/horario.astro
 import Navbar from '../components/navbar.astro';
 import Layout from '../layouts/Layout.astro';
 
-
-async function fetchUserData() {
-  const token = localStorage.getItem('access_token');
-
-
-  if (!token) {
-    console.log('No token found');
-    return null;
-  }
-  else {
-    console.log('token', token);
-  }
-  try {
-    // Realizar la petición al endpoint de usuario
-    const response = await fetch('https://localhost:8080/api/user', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    // Verificar si la petición fue exitosa
-    if (!response.ok) {
-      console.error('Failed to fetch user data:', response.status);
-      return null;
-    }
-
-    // Convertir la respuesta a JSON
-    const userData = await response.json();
-    return userData;
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-    return null;
-  }
-}
-
-// Inyectar el usuario en el cliente
-let user = { name: 'Cargando...' };
-if (typeof window !== 'undefined') {
-  fetchUserData().then(data => {
-    if (data) {
-      user.name = data.name;
-      document.getElementById('username').textContent = user.name;
-    }
-  });
-}
+let user = { name: 'Cargando...', email: '...', id: null, professor_cod: '...' };
+let error = null;
 ---
 
 <Layout title="Inicio">
+  <Navbar />
+  <div id="error" class="error-message">{error}</div>
+  <div class="user-info">
     <h1 id="username">{user.name}</h1>
-    <Navbar />
+    <p><strong>Name:</strong> <span id="username">{user.name}</span></p>
+    <p><strong>Email:</strong> <span id="user-email">{user.email}</span></p>
+    <p><strong>ID:</strong> <span id="user-id">{user.id}</span></p>
+    <p><strong>Professor Code:</strong> <span id="user-professor-cod">{user.professor_cod}</span></p>
+  </div>
+  <script type="module">
+    async function fetchUserData() {
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        document.getElementById('error').textContent = 'User is not authenticated';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://127.0.0.1:8080/api/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const userData = await response.json();
+        updateDOM(userData, null);
+      } catch (err) {
+        updateDOM(null, err.message);
+      }
+    }
+
+    function updateDOM(user, error) {
+      if (error) {
+        document.getElementById('error').textContent = error;
+      } else {
+        document.getElementById('username').textContent = user.name;
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-id').textContent = user.id;
+        document.getElementById('user-professor-cod').textContent = user.professor_cod;
+      }
+    }
+
+    fetchUserData();
+  </script>
 </Layout>

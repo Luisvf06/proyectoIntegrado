@@ -12,9 +12,8 @@ class Asignatura extends Model
 
     protected $guarded = [];
 
-    public function horarios()
-    {
-        return $this->HasMany(Horario::class);
+    public function horario():BelongsToMany{
+        return $this->BelongsToMany(Horario::class);
     }
 }
 
