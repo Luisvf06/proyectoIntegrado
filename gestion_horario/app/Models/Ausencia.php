@@ -1,31 +1,21 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Models;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AusenciaRequest extends FormRequest
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+class Ausencia extends Model
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
+    use HasFactory;
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<string>|string>
-     */
-    public function rules(): array
+    protected $guarded = [];
+
+    public function users(): BelongsTo
     {
-        return [
-            'user_id' => 'required|exists:users,id',
-            'horario_id' => 'required|exists:horarios,id',
-            'fecha' => 'required|date|after_or_equal:today',
-            'hora' => 'required|date_format:H:i',
-        ];
+        return $this->belongsTo(User::class);
     }
 }

@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AusenciaRequest;
 use App\Models\Ausencia;
-use App\Models\Horario;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Carbon\Carbon;
 
 class AusenciaController extends Controller
 {
@@ -27,8 +26,34 @@ class AusenciaController extends Controller
     public function store(AusenciaRequest $request): JsonResponse
     {
         try {
-            $ausencia = Ausencia::create($request->validated());
-            return response()->json(['message' => 'Ausencia creada correctamente', 'ausencia' => $ausencia], 201);
+            // Validar los datos
+            $data = $request->validated();
+
+            // Procesar los diferentes tipos de fecha
+            if (isset($data['fechas'])) {
+                // Caso de varias fechas
+                foreach ($data['fechas'] as $fecha) {
+                    // Convertir la fecha al formato correcto
+                    $formattedDate = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+
+                    Ausencia::create([
+                        'user_id' => $data['user_id'],
+                        'fecha' => $formattedDate,
+                        'hora' => $data['hora'] ?? null,
+                    ]);
+                }
+            } else {
+                // Caso de una sola fecha
+                $formattedDate = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
+
+                Ausencia::create([
+                    'user_id' => $data['user_id'],
+                    'fecha' => $formattedDate,
+                    'hora' => $data['hora'] ?? null,
+                ]);
+            }
+
+            return response()->json(['message' => 'Ausencia creada correctamente'], 201);
         } catch (Exception $e) {
             Log::error('Error al crear la ausencia: '.$e->getMessage());
             return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
@@ -61,7 +86,16 @@ class AusenciaController extends Controller
         }
 
         try {
-            $ausencia->update($request->validated());
+            $data = $request->validated();
+            if (isset($data['fecha'])) {
+                $data['fecha'] = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
+            }
+            if (isset($data['fechas'])) {
+                $data['fechas'] = array_map(function($fecha) {
+                    return Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                }, $data['fechas']);
+            }
+            $ausencia->update($data);
             return response()->json(['message' => 'Ausencia actualizada correctamente', 'ausencia' => $ausencia], 200);
         } catch (Exception $e) {
             Log::error('Error al actualizar la ausencia: '.$e->getMessage());

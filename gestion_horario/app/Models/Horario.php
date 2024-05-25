@@ -13,10 +13,6 @@ class Horario extends Model
 
     protected $guarded = [];
 
-    public function ausencias(): HasMany
-    {
-        return $this->hasMany(Ausencia::class);
-    }
 
     public function franja(): BelongsTo
     {

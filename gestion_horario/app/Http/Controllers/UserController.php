@@ -131,4 +131,21 @@ class UserController extends Controller
         );
         return $texto;
     }
+    public function getAuthenticatedUser(Request $request)
+    {
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            return response()->json($user, 200);
+        } catch (\Exception $e) {
+            // Registrar el error y devolver una respuesta de error
+            \Log::error('Error fetching user data: ' . $e->getMessage());
+            return response()->json(['error' => 'Internal Server Error'], 500);
+        }
+    }
 }

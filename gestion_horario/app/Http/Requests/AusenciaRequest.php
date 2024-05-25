@@ -23,10 +23,10 @@ class AusenciaRequest extends FormRequest
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'horario_id' => 'required|exists:horarios,id',
-            'fechas' => 'required|array',
-            'fechas.*' => 'date|after_or_equal:today',
+            'fecha' => 'sometimes|required|date|after_or_equal:today',
             'hora' => 'nullable|date_format:H:i',
+            'fechas' => 'sometimes|required|array',
+            'fechas.*' => 'date|after_or_equal:today',
         ];
     }
 }

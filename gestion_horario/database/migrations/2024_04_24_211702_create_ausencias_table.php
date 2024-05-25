@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('horario_id');
             $table->date('fecha');
             $table->time('hora');
         });

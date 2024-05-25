@@ -14,7 +14,7 @@ class Asignatura extends Model
 
     public function horarios()
     {
-        return $this->belongsToMany(Horario::class, 'asignatura_horario', 'asignatura_id', 'horario_id');
+        return $this->HasMany(Horario::class);
     }
 }
 
