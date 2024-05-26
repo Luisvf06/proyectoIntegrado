@@ -42,7 +42,8 @@ Route::get('/send-test-email', function () {
     Mail::to($user->email)->send(new UserMail([
         'name' => $user->name,
         'email' => $user->email,
-        'user_name' => $user->user_name
+        'user_name' => $user->user_name,
+        'password' => $user->password
     ]));
     return 'Email sent!';
 });

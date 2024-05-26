@@ -38,8 +38,10 @@ class UserController extends Controller
             $nameParts = explode(' ', trim($fullName));
             $firstName = $nameParts[0];
 
+            // Generar una contraseña en texto plano para enviar por correo
+            $plainPassword = $firstName . Carbon::now()->year;
             // Uso el primer nombre y el año actual para generar una contraseña
-            $password = Hash::make($firstName . Carbon::now()->year);
+            $hashedPassword = Hash::make($plainPassword);
 
             // Obtengo el nombre completo del profesor
             $name = $fullName;
@@ -94,7 +96,7 @@ class UserController extends Controller
                 $newUser = User::create([
                     'name' => $name,
                     'email' => $email,
-                    'password' => $password,
+                    'password' => $hashedPassword,
                     'user_name' => $user_name,
                     'professor_cod' => $profesor[0]
                 ]);
@@ -109,13 +111,16 @@ class UserController extends Controller
                 Mail::to($newUser->email)->send(new UserMail([
                     'name' => $name,
                     'email' => $email,
-                    'user_name' => $user_name
+                    'user_name' => $user_name,
+                    'password' => $plainPassword // Enviar la contraseña en texto plano en el correo
                 ]));
+
+                Log::info('Correo enviado a:', ['email' => $newUser->email]);
 
                 // Agregar al array de usuarios creados
                 $createdUsers[] = $newUser;
             } catch (\Exception $e) {
-                Log::error('Error al crear usuario: ' . $e->getMessage());
+                Log::error('Error al crear usuario o enviar correo: ' . $e->getMessage());
                 continue; // Saltar este usuario si hay un error
             }
         }
@@ -175,12 +180,13 @@ class UserController extends Controller
             Mail::to($user->email)->send(new UserMail($user));
             // Optionally, you can check if the email was sent successfully
             if (count(Mail::failures()) > 0) {
-                // You can log errors
+                Log::error('Error al enviar el correo a: ' . $user->email);
             } else {
-                // Email sent successfully
+                Log::info('Correo enviado a: ' . $user->email);
             }
         } catch (\Exception $e) {
-            dd($e);
+            Log::error('Error al enviar correo: ' . $e->getMessage());
         }
     }
 }
+
