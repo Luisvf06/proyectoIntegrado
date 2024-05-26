@@ -35,13 +35,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/franjas', FranjaController::class);
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
-    Route::get('/send-test-email', function () {
-        $user = \App\Models\User::first();
-        Mail::to($user->email)->send(new UserMail([
-            'name' => $user->name,
-            'email' => $user->email,
-            'user_name' => $user->user_name
-        ]));
-        return 'Email sent!';
-    });
+
+});
+Route::get('/send-test-email', function () {
+    $user = \App\Models\User::first();
+    Mail::to($user->email)->send(new UserMail([
+        'name' => $user->name,
+        'email' => $user->email,
+        'user_name' => $user->user_name
+    ]));
+    return 'Email sent!';
 });
