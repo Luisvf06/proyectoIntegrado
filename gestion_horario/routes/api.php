@@ -13,6 +13,8 @@ use App\Http\Controllers\AulaController;
 use App\Http\Controllers\FranjaController;
 use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\PeriodoController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserMail;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -33,4 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/franjas', FranjaController::class);
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
+    Route::get('/send-test-email', function () {
+        $user = \App\Models\User::first();
+        Mail::to($user->email)->send(new UserMail([
+            'name' => $user->name,
+            'email' => $user->email,
+            'user_name' => $user->user_name
+        ]));
+        return 'Email sent!';
+    });
 });

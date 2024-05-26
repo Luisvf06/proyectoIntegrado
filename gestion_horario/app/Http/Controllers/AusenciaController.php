@@ -8,7 +8,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AusenciaMail;
 class AusenciaController extends Controller
 {
     /**
@@ -122,4 +123,10 @@ class AusenciaController extends Controller
             return response()->json(['error' => 'Error al eliminar la ausencia: ' . $e->getMessage()], 500);
         }
     }
+
+    public function sendMail(Request $request): JsonResponse
+    {
+      auth()->user()->ausencias()->create($request->all());
+      Mail::to('luis@test.mail')->send(new AusenciaMail(''));
+}
 }

@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserMail;
 
 class UserController extends Controller
 {
@@ -59,13 +61,13 @@ class UserController extends Controller
             } else {
                 $email_base = $this->normalizarTexto($firstName) . "2024";
             }
-            $email = $email_base . '@iespoligonosur.org';
+            $email = $email_base . '@iespoligonosur1234.org';
 
             // Verificar si el correo ya existe y modificarlo si es necesario
             $original_email = $email_base;
             $email_counter = 1;
             while (User::where('email', $email)->exists()) {
-                $email = $original_email . $email_counter . '@iespoligonosur.org';
+                $email = $original_email . $email_counter . '@iespoligonosur1234.org';
                 $email_counter++;
             }
 
@@ -103,6 +105,13 @@ class UserController extends Controller
                 // Guardar el usuario
                 $newUser->save();
 
+                // Enviar correo al usuario
+                Mail::to($newUser->email)->send(new UserMail([
+                    'name' => $name,
+                    'email' => $email,
+                    'user_name' => $user_name
+                ]));
+
                 // Agregar al array de usuarios creados
                 $createdUsers[] = $newUser;
             } catch (\Exception $e) {
@@ -131,16 +140,17 @@ class UserController extends Controller
         );
         return $texto;
     }
+
     public function getAuthenticatedUser(Request $request)
     {
         try {
             // Obtener el usuario autenticado
             $user = $request->user();
-    
+
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
-    
+
             return response()->json($user, 200);
         } catch (\Exception $e) {
             // Registrar el error y devolver una respuesta de error
@@ -148,6 +158,7 @@ class UserController extends Controller
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
+
     public function getUser(Request $request)
     {
         $user = Auth::user();
@@ -155,5 +166,21 @@ class UserController extends Controller
             'name' => $user->name,
             'email' => $user->email,
         ]);
-    }   
+    } 
+
+    public function sendEmail() {
+        // Your user registration logic here
+        $user = User::First();
+        try {
+            Mail::to($user->email)->send(new UserMail($user));
+            // Optionally, you can check if the email was sent successfully
+            if (count(Mail::failures()) > 0) {
+                // You can log errors
+            } else {
+                // Email sent successfully
+            }
+        } catch (\Exception $e) {
+            dd($e);
+        }
+    }
 }
