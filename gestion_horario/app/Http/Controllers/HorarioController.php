@@ -83,7 +83,10 @@ class HorarioController extends Controller
             }
         }
     }
-
+    public function index()
+    {
+        return response()->json(Horario::all());
+    }
     public function getUserHorario()
     {
         $user = Auth::user();

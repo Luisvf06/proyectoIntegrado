@@ -26,18 +26,18 @@ let error = null;
       }
 
       try {
-        const response = await fetch('http://127.0.0.1:8080/api/user', {
+        const dataUser = await fetch('http://127.0.0.1:8080/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
         });
 
-        if (!response.ok) {
+        if (!dataUser.ok) {
           throw new Error('Failed to fetch user data');
         }
 
-        const userData = await response.json();
+        const userData = await dataUser.json();
         updateDOM(userData, null);
       } catch (err) {
         updateDOM(null, err.message);

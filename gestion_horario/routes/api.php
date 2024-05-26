@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/franjas', FranjaController::class);
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
+    Route::resource('/getUserHorario', HorarioController::class);
 
 });
 Route::get('/send-test-email', function () {
