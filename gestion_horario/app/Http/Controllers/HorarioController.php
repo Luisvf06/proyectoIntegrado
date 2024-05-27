@@ -70,7 +70,7 @@ class HorarioController extends Controller
                     'horario_cod' => $horario[0],
                     'dia' => $horario[2],
                     'user_id' => $profesor->id,
-                    'asignatura_id' => $asignatura->id, // Asegúrate de que 'asignatura_id' se asigne correctamente
+                    'asignatura_id' => $asignatura->id, 
                     'aula_id' => $aula ? $aula->id : null,
                     'franja_id' => $franja->id,
                     'grupo_id' => $grupo->id,
@@ -103,7 +103,9 @@ class HorarioController extends Controller
         return response()->json([
             'user' => $user,
             'horarios' => $horarios,
-            'franjas' => $franjas
+            'franjas' => $franjas,
+            'asignaturas'=> $asignaturas,
+            'aulas' => $aulas,
         ]);
     }
 }

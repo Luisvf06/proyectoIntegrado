@@ -121,89 +121,150 @@ import Layout from '../layouts/Layout.astro';
   import "cally";
 
   document.addEventListener('DOMContentLoaded', () => {
-    const checkboxList = document.getElementById('checkboxList');
-    const unasHorasContainer = document.getElementById('unas-horas-container');
-    const todoElDiaContainer = document.getElementById('todo-el-dia-container');
-    const variosDiasContainer = document.getElementById('varios-dias-container');
-    const crearAusenciaContainer = document.getElementById('crear-ausencia-container');
-    const crearAusenciaBtn = document.getElementById('crear-ausencia-btn');
+  const checkboxList = document.getElementById('checkboxList');
+  const unasHorasContainer = document.getElementById('unas-horas-container');
+  const todoElDiaContainer = document.getElementById('todo-el-dia-container');
+  const variosDiasContainer = document.getElementById('varios-dias-container');
+  const crearAusenciaContainer = document.getElementById('crear-ausencia-container');
+  const crearAusenciaBtn = document.getElementById('crear-ausencia-btn');
 
-    const unasHorasBtn = document.getElementById('unas-horas-btn');
-    const todoElDiaBtn = document.getElementById('todo-el-dia-btn');
-    const variosDiasBtn = document.getElementById('varios-dias-btn');
+  const unasHorasBtn = document.getElementById('unas-horas-btn');
+  const todoElDiaBtn = document.getElementById('todo-el-dia-btn');
+  const variosDiasBtn = document.getElementById('varios-dias-btn');
 
-    const token = localStorage.getItem('access_token'); //Acceso al token de usuario
+  const token = window.sessionStorage.getItem('authToken'); 
 
-    if (!token) {
-      console.error('No se encontró el token de autenticación.');
-      alert('No se encontró el token de autenticación. Por favor, inicie sesión.');
-      return;
+  if (!token) {
+    console.error('No se encontró el token de autenticación.');
+    alert('No se encontró el token de autenticación. Por favor, inicie sesión.');
+    return;
+  }
+
+  let selectedDate = false;
+  let selectedHour = false;
+
+  const checkToShowCrearAusencia = () => {
+    if (selectedDate && selectedHour) {
+      crearAusenciaContainer.style.display = 'flex';
+    } else {
+      crearAusenciaContainer.style.display = 'none';
     }
+  };
 
-    let selectedDate = false;
-    let selectedHour = false;
-    //Muestro según qué elemento del html según el botón seleccionado
-    const checkToShowCrearAusencia = () => {
-      if (selectedDate && selectedHour) {
-        crearAusenciaContainer.style.display = 'flex';
-      } else {
-        crearAusenciaContainer.style.display = 'none';
-      }
+  unasHorasBtn.addEventListener('click', () => {
+    unasHorasContainer.style.display = 'flex';
+    todoElDiaContainer.style.display = 'none';
+    variosDiasContainer.style.display = 'none';
+    selectedDate = false;
+    selectedHour = false;
+    checkToShowCrearAusencia();
+  });
+
+  todoElDiaBtn.addEventListener('click', () => {
+    unasHorasContainer.style.display = 'none';
+    todoElDiaContainer.style.display = 'flex';
+    variosDiasContainer.style.display = 'none';
+    selectedDate = false;
+    selectedHour = true; // Necesita seleccionar la fecha
+    checkToShowCrearAusencia();
+  });
+
+  variosDiasBtn.addEventListener('click', () => {
+    unasHorasContainer.style.display = 'none';
+    todoElDiaContainer.style.display = 'none';
+    variosDiasContainer.style.display = 'flex';
+    selectedDate = false;
+    selectedHour = true; // Necesita seleccionar el rango de fechas
+    checkToShowCrearAusencia();
+  });
+
+  checkboxList.addEventListener('change', () => {
+    selectedHour = checkboxList.querySelector('input:checked') !== null;
+    checkToShowCrearAusencia();
+  });
+
+  document.getElementById('calendar1').addEventListener('click', () => {
+    selectedDate = true;
+    checkToShowCrearAusencia();
+  });
+
+  document.getElementById('calendar3').addEventListener('click', () => {
+    selectedDate = true;
+    checkToShowCrearAusencia();
+  });
+
+  document.getElementById('calendar2').addEventListener('click', () => {
+    selectedDate = true;
+    checkToShowCrearAusencia();
+  });
+
+  fetch('http://localhost:8080/api/franjas', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`, 
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Network response was not ok: ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    const franjas = data; 
+    franjas.forEach(franja => {
+      const listItem = document.createElement('li');
+      listItem.classList.add('w-full', 'border-b', 'border-gray-200', 'rounded-t-lg', 'dark:border-gray-600');
+      
+      const itemDiv = document.createElement('div');
+      itemDiv.classList.add('flex', 'items-center', 'ps-3');
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.classList.add('w-4', 'h-4', 'text-blue-600', 'bg-gray-100', 'border-gray-300', 'rounded', 'focus:ring-blue-500', 'dark:focus:ring-blue-600', 'dark:ring-offset-gray-700', 'dark:focus:ring-offset-gray-700', 'focus:ring-2', 'dark:bg-gray-600', 'dark:border-gray-500');
+      checkbox.id = `checkbox-item-${franja.id}`;
+      checkbox.value = franja.hora_desde;
+
+      const label = document.createElement('label');
+      label.classList.add('w-full', 'py-3', 'ms-2', 'text-sm', 'font-medium', 'text-gray-900', 'dark:text-gray-300');
+      label.htmlFor = `checkbox-item-${franja.id}`;
+      label.textContent = `${franja.hora_desde}`; 
+
+      itemDiv.appendChild(checkbox);
+      itemDiv.appendChild(label);
+      listItem.appendChild(itemDiv);
+      checkboxList.appendChild(listItem);
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching data:', error);
+    alert(`Error fetching data: ${error.message}`);
+  });
+
+  // Manejar el evento click del botón Crear Ausencia
+  crearAusenciaBtn.addEventListener('click', () => {
+    const checkedHours = Array.from(checkboxList.querySelectorAll('input:checked')).map(input => input.value);
+    const fecha = selectedDate;
+    const horarioId = 1; 
+    const userId = 1; 
+    
+    // Crear los datos para la solicitud POST
+    const ausenciaData = {
+      user_id: userId,
+      horario_id: horarioId,
+      fecha: fecha, // Formatear la fecha correctamente
+      hora: checkedHours.join(', '), // Formatear las horas seleccionadas
     };
 
-    unasHorasBtn.addEventListener('click', () => {
-      unasHorasContainer.style.display = 'flex';
-      todoElDiaContainer.style.display = 'none';
-      variosDiasContainer.style.display = 'none';
-      selectedDate = false;
-      selectedHour = false;
-      checkToShowCrearAusencia();
-    });
-
-    todoElDiaBtn.addEventListener('click', () => {
-      unasHorasContainer.style.display = 'none';
-      todoElDiaContainer.style.display = 'flex';
-      variosDiasContainer.style.display = 'none';
-      selectedDate = false;
-      selectedHour = true; // Necesita seleccionar la fecha
-      checkToShowCrearAusencia();
-    });
-
-    variosDiasBtn.addEventListener('click', () => {
-      unasHorasContainer.style.display = 'none';
-      todoElDiaContainer.style.display = 'none';
-      variosDiasContainer.style.display = 'flex';
-      selectedDate = false;
-      selectedHour = true; // Necesita seleccionar el rango de fechas
-      checkToShowCrearAusencia();
-    });
-
-    checkboxList.addEventListener('change', () => {
-      selectedHour = checkboxList.querySelector('input:checked') !== null;
-      checkToShowCrearAusencia();
-    });
-
-    document.getElementById('calendar1').addEventListener('click', () => {
-      selectedDate = true;
-      checkToShowCrearAusencia();
-    });
-
-    document.getElementById('calendar3').addEventListener('click', () => {
-      selectedDate = true;
-      checkToShowCrearAusencia();
-    });
-
-    document.getElementById('calendar2').addEventListener('click', () => {
-      selectedDate = true;
-      checkToShowCrearAusencia();
-    });
-
-    fetch('http://localhost:8080/api/franjas', {
-      method: 'GET',
+    // Enviar la solicitud POST
+    fetch('http://localhost:8080/api/ausencias', {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`, 
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify(ausenciaData)
     })
     .then(response => {
       if (!response.ok) {
@@ -212,74 +273,13 @@ import Layout from '../layouts/Layout.astro';
       return response.json();
     })
     .then(data => {
-      const franjas = data; 
-      franjas.forEach(franja => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('w-full', 'border-b', 'border-gray-200', 'rounded-t-lg', 'dark:border-gray-600');
-        
-        const itemDiv = document.createElement('div');
-        itemDiv.classList.add('flex', 'items-center', 'ps-3');
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.classList.add('w-4', 'h-4', 'text-blue-600', 'bg-gray-100', 'border-gray-300', 'rounded', 'focus:ring-blue-500', 'dark:focus:ring-blue-600', 'dark:ring-offset-gray-700', 'dark:focus:ring-offset-gray-700', 'focus:ring-2', 'dark:bg-gray-600', 'dark:border-gray-500');
-        checkbox.id = `checkbox-item-${franja.id}`;
-        checkbox.value = franja.hora_desde;
-
-        const label = document.createElement('label');
-        label.classList.add('w-full', 'py-3', 'ms-2', 'text-sm', 'font-medium', 'text-gray-900', 'dark:text-gray-300');
-        label.htmlFor = `checkbox-item-${franja.id}`;
-        label.textContent = `${franja.hora_desde}`; 
-
-        itemDiv.appendChild(checkbox);
-        itemDiv.appendChild(label);
-        listItem.appendChild(itemDiv);
-        checkboxList.appendChild(listItem);
-      });
+      console.log('Ausencia creada:', data);
+      alert('Ausencia creada correctamente');
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
-      alert(`Error fetching data: ${error.message}`);
-    });
-
-    // Manejar el evento click del botón Crear Ausencia
-    crearAusenciaBtn.addEventListener('click', () => {
-      const checkedHours = Array.from(checkboxList.querySelectorAll('input:checked')).map(input => input.value);
-      const fecha = selectedDate; // Obtener la fecha seleccionada
-      const horarioId = 1; // Asignar el ID del horario correspondiente, esto debería ser dinámico
-      const userId = 1; // Asignar el ID del usuario correspondiente, esto debería ser dinámico
-      
-      // Crear los datos para la solicitud POST
-      const ausenciaData = {
-        user_id: userId,
-        horario_id: horarioId,
-        fecha: fecha, // Formatear la fecha correctamente
-        hora: checkedHours.join(', '), // Formatear las horas seleccionadas
-      };
-
-      // Enviar la solicitud POST
-      fetch('http://localhost:8080/api/ausencias', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`, 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ausenciaData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Ausencia creada:', data);
-        alert('Ausencia creada correctamente');
-      })
-      .catch(error => {
-        console.error('Error creating ausencia:', error);
-        alert(`Error creating ausencia: ${error.message}`);
-      });
+      console.error('Error creating ausencia:', error);
+      alert(`Error creating ausencia: ${error.message}`);
     });
   });
+});
 </script>

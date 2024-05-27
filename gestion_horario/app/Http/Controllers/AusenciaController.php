@@ -21,9 +21,6 @@ class AusenciaController extends Controller
         return response()->json($ausencias, 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(AusenciaRequest $request): JsonResponse
     {
         try {
@@ -44,7 +41,7 @@ class AusenciaController extends Controller
                     ]);
                 }
             } else {
-                // Caso de una sola fecha
+
                 $formattedDate = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
 
                 Ausencia::create([
@@ -61,9 +58,6 @@ class AusenciaController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id): JsonResponse
     {
         $ausencia = Ausencia::find($id);

@@ -1,6 +1,5 @@
 ---
-// src/pages/horario.astro
-import Navbar from '../components/navbar.astro';
+
 import Layout from '../layouts/Layout.astro';
 
 let user = { name: 'Cargando...', email: '...', id: null, professor_cod: '...' };
@@ -8,15 +7,20 @@ let error = null;
 ---
 
 <Layout title="Inicio">
-  <Navbar />
-  <div id="error" class="error-message">{error}</div>
-  <div class="user-info">
+
+  
+  <div id="error" class="error-message text-white">{error}</div>
+  <div class="user-info text-white">
     <h1 id="username">{user.name}</h1>
-    <p><strong>Name:</strong> <span id="username">{user.name}</span></p>
+
     <p><strong>Email:</strong> <span id="user-email">{user.email}</span></p>
     <p><strong>ID:</strong> <span id="user-id">{user.id}</span></p>
     <p><strong>Professor Code:</strong> <span id="user-professor-cod">{user.professor_cod}</span></p>
   </div>
+  
+  <div id="schedule-container" class="container mx-auto mt-10 text-white">
+  </div>
+  
   <script type="module">
     async function fetchUserData() {
       const token = sessionStorage.getItem('authToken');
@@ -32,19 +36,38 @@ let error = null;
             'Accept': 'application/json'
           }
         });
-
+        const dataHorario = await fetch('http://127.0.0.1:8080/api/horarios', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        const dataFranjas = await fetch('http://127.0.0.1:8080/api/franjas', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
         if (!dataUser.ok) {
           throw new Error('Failed to fetch user data');
         }
+        if (!dataHorario.ok) {
+          throw new Error('Failed to fetch horario data');
+        }
+        if (!dataFranjas.ok) {
+          throw new Error('Failed to fetch franjas data');
+        }
 
         const userData = await dataUser.json();
-        updateDOM(userData, null);
+        const Horariodata = await dataHorario.json();
+        const Franjasdata = await dataFranjas.json();
+        updateDOM(userData, Franjasdata, Horariodata, null);
       } catch (err) {
-        updateDOM(null, err.message);
+        updateDOM(null, null, null, err.message);
       }
     }
 
-    function updateDOM(user, error) {
+    function updateDOM(user, franjas, horarios, error) {
       if (error) {
         document.getElementById('error').textContent = error;
       } else {
@@ -52,6 +75,52 @@ let error = null;
         document.getElementById('user-email').textContent = user.email;
         document.getElementById('user-id').textContent = user.id;
         document.getElementById('user-professor-cod').textContent = user.professor_cod;
+
+        const scheduleContainer = document.getElementById('schedule-container');
+        const table = document.createElement('table');
+        table.className = 'min-w-full border-collapse border border-gray-200 text-white';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+        
+        headers.forEach(headerText => {
+          const th = document.createElement('th');
+          th.className = 'border border-gray-200 px-4 py-2';
+          th.textContent = headerText;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        
+        franjas.forEach(franja => {
+          const row = document.createElement('tr');
+
+          const horaCell = document.createElement('td');
+          horaCell.className = 'border border-gray-200 px-4 py-2';
+          horaCell.textContent = franja.hora_desde;
+          row.appendChild(horaCell);
+
+          for (let i = 0; i < 5; i++) {
+            const dayCell = document.createElement('td');
+            dayCell.className = 'border border-gray-200 px-4 py-2';
+
+            // Busca si hay un horario que coincida con la franja y el día
+            const horario = horarios.find(h => h.franja_id === franja.id && parseInt(h.dia) === i + 1);
+            if (horario) {
+              dayCell.textContent = `${horario.aula.aula_cod} - ${horario.asignatura.descripcion}`;
+            }
+
+            row.appendChild(dayCell);
+          }
+
+          tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        scheduleContainer.appendChild(table);
       }
     }
 

@@ -13,26 +13,19 @@ use App\Mail\UserMail;
 
 class UserController extends Controller
 {
-    /**
-     * Inserta usuarios basándose en los datos extraídos del XML.
-     *
-     * @param array $profesores
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function insertUsers(array $profesores)
     {
         Log::info('Datos de profesores recibidos:', ['profesores' => $profesores]);
 
         // Por defecto doy el rol profesor a todos
-        $roleController = new RoleController();
-        $roleProfesorado = $roleController->createRoleIfNotExists('docente');
+        $roleProfesorado = Role::firstOrCreate(['name' => 'docente']);
 
         // Iniciar una lista de usuarios creados para la respuesta
         $createdUsers = [];
 
         foreach ($profesores as $profesor) {
             Log::info('Procesando profesor:', ['profesor' => $profesor]);
-            
+
             // Primer nombre del profesor
             $fullName = $profesor[1];
             $nameParts = explode(' ', trim($fullName));
@@ -103,8 +96,6 @@ class UserController extends Controller
 
                 // Asignar el rol al usuario
                 $newUser->roles()->attach($roleProfesorado->id);
-
-                // Guardar el usuario
                 $newUser->save();
 
                 // Enviar correo al usuario
@@ -112,7 +103,7 @@ class UserController extends Controller
                     'name' => $name,
                     'email' => $email,
                     'user_name' => $user_name,
-                    'password' => $plainPassword // Enviar la contraseña en texto plano en el correo
+                    'password' => $plainPassword 
                 ]));
 
                 Log::info('Correo enviado a:', ['email' => $newUser->email]);
@@ -125,9 +116,9 @@ class UserController extends Controller
             }
         }
 
-        // Retornar respuesta JSON
         return response()->json(['success' => true, 'created_users' => $createdUsers, 'token' => $createdUsers[0]->createToken("API TOKEN")->plainTextToken], 201);
     }
+
 
     /**
      * Normaliza el texto a minúsculas y reemplaza caracteres especiales.
@@ -145,11 +136,52 @@ class UserController extends Controller
         );
         return $texto;
     }
+    public function index()
+    {
+        $users = User::with('roles')->get();
+        return response()->json($users);
+    }
 
+    public function show($id)
+    {
+        $user = User::with('roles')->find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        return response()->json($user);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->update($request->all());
+
+        if ($request->has('roles')) {
+            $user->roles()->sync($request->roles);
+        }
+
+        return response()->json($user);
+    }
+
+    public function destroy($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->roles()->detach();
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted']);
+    }
     public function getAuthenticatedUser(Request $request)
     {
         try {
-            // Obtener el usuario autenticado
             $user = $request->user();
 
             if (!$user) {
@@ -158,35 +190,10 @@ class UserController extends Controller
 
             return response()->json($user, 200);
         } catch (\Exception $e) {
-            // Registrar el error y devolver una respuesta de error
-            \Log::error('Error fetching user data: ' . $e->getMessage());
+            Log::error('Error fetching user data: ' . $e->getMessage());
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
-    }
-
-    public function getUser(Request $request)
-    {
-        $user = Auth::user();
-        return response()->json([
-            'name' => $user->name,
-            'email' => $user->email,
-        ]);
-    } 
-
-    public function sendEmail() {
-        // Your user registration logic here
-        $user = User::First();
-        try {
-            Mail::to($user->email)->send(new UserMail($user));
-            // Optionally, you can check if the email was sent successfully
-            if (count(Mail::failures()) > 0) {
-                Log::error('Error al enviar el correo a: ' . $user->email);
-            } else {
-                Log::info('Correo enviado a: ' . $user->email);
-            }
-        } catch (\Exception $e) {
-            Log::error('Error al enviar correo: ' . $e->getMessage());
-        }
-    }
 }
+}
+
 

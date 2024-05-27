@@ -1,6 +1,6 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
-
+import Navbar from '../components/navbarvue.vue';
 
 interface Props {
 	title: string;
@@ -21,7 +21,7 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<ViewTransitions />
-
+		<Navbar client:load/>
 		<style is:global>
 			:root {
 				--accent: 136, 58, 234;

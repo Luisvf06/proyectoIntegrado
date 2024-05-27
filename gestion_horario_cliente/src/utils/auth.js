@@ -18,19 +18,31 @@ export function getAuthenticatedUser() {
       .catch(err => null);
   }
   
-  export async function loginUser(username, password) {
-    const response = await fetch('http://127.0.0.1:8080/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ user_name: username, password: password }),
-    });
+  export async function loginUser(userName, password) {
+    try {
+      const response = await fetch('http://127.0.0.1:8080/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_name: userName,
+          password: password,
+        }),
+      });
   
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to login');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error en la respuesta del servidor: ${response.statusText} - ${errorText}`);
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error.message);
+      throw error;
     }
+  }
   
     return await response.json();
   }

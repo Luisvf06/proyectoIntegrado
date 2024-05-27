@@ -15,18 +15,19 @@ use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\PeriodoController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserMail;
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->get('/user', [UserController::class, 'getAuthenticatedUser']);
+
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user/horario',[HorarioController::class, 'getUserHorario']);
-    Route::resource('/users', UserController::class);//Para ver las rutas del resource usar en la terminal php artisan route:list
+    Route::get('/user/horario', [HorarioController::class, 'getUserHorario']);
+    Route::resource('/users', UserController::class); //Para ver las rutas del resource usar en la terminal php artisan route:list
     Route::resource('/ausencias', AusenciaController::class);
     Route::resource('/asignaturas', AsignaturaController::class);
     Route::post('/upload-xml', [XmlController::class, 'uploadXML']);
@@ -36,8 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
     Route::resource('/getUserHorario', HorarioController::class);
-
 });
+
 Route::get('/send-test-email', function () {
     $user = \App\Models\User::first();
     Mail::to($user->email)->send(new UserMail([
@@ -48,3 +49,12 @@ Route::get('/send-test-email', function () {
     ]));
     return 'Email sent!';
 });
+
+// Ruta OPTIONS para manejar las solicitudes preflight
+
+Route::options('/{any}', function (Request $request) {
+    return response('', 200)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+})->where('any', '.*');
