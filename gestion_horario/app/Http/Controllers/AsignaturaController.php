@@ -24,4 +24,8 @@ class AsignaturaController extends Controller
             }
         }
     }
+    public function index()
+    {
+        return response()->json(Asignatura::all());
+    }
 }

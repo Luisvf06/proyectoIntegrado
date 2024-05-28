@@ -32,10 +32,5 @@ class FranjaController extends Controller
         return response()->json(Franja::all());
     }
 
-    public function horaDesde()
-    {
-        $horas=DB::table('franjas')->pluck('hora_desde');
-        return response()->json($horas);
-    }
 }
 

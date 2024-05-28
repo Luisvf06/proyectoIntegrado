@@ -42,7 +42,7 @@ export function getAuthenticatedUser() {
       console.error('Error al iniciar sesión:', error.message);
       throw error;
     }
-  }
+  
   
     return await response.json();
   }

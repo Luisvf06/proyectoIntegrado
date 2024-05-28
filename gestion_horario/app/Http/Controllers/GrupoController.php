@@ -24,4 +24,8 @@ class GrupoController extends Controller
             }
         }
     }
+    public function index()
+    {
+        return response()->json(Grupo::all());
+    }
 }

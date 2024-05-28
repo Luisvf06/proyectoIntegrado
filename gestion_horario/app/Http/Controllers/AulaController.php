@@ -24,5 +24,9 @@ class AulaController extends Controller
             }
         }
     }
+    public function index()
+    {
+        return response()->json(Aula::all());
+    }
 }
 
