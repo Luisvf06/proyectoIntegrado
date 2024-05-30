@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Requests\AusenciaRequest; // Asegúrate de que esta línea esté presente
+use App\Http\Requests\AusenciaRequest;
 use App\Models\Ausencia;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ class AusenciaController extends Controller
 {
     public function index(): JsonResponse
     {
-        $ausencias = Ausencia::all(['id', 'fecha', 'hora', 'user_id']); // Incluye el campo 'id'
+        $ausencias = Ausencia::all(['id', 'fecha', 'hora', 'user_id']);
         return response()->json($ausencias, 200);
     }
 
@@ -45,7 +45,7 @@ class AusenciaController extends Controller
 
             return response()->json(['message' => 'Ausencia creada correctamente'], 201);
         } catch (Exception $e) {
-            Log::error('Error al crear la ausencia: '.$e->getMessage());
+            Log::error('Error al crear la ausencia: ' . $e->getMessage());
             return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
         }
     }
@@ -71,18 +71,15 @@ class AusenciaController extends Controller
 
         try {
             $data = $request->validated();
+
             if (isset($data['fecha'])) {
-                $data['fecha'] = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
+                $data['fecha'] = Carbon::createFromFormat('Y-m-d', $data['fecha'])->format('Y-m-d');
             }
-            if (isset($data['fechas'])) {
-                $data['fechas'] = array_map(function($fecha) {
-                    return Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
-                }, $data['fechas']);
-            }
+
             $ausencia->update($data);
             return response()->json(['message' => 'Ausencia actualizada correctamente', 'ausencia' => $ausencia], 200);
         } catch (Exception $e) {
-            Log::error('Error al actualizar la ausencia: '.$e->getMessage());
+            Log::error('Error al actualizar la ausencia: ' . $e->getMessage());
             return response()->json(['error' => 'Error al actualizar la ausencia: ' . $e->getMessage()], 500);
         }
     }
@@ -99,16 +96,16 @@ class AusenciaController extends Controller
             $ausencia->delete();
             return response()->json(['message' => 'Ausencia eliminada correctamente'], 200);
         } catch (Exception $e) {
-            Log::error('Error al eliminar la ausencia: '.$e->getMessage());
+            Log::error('Error al eliminar la ausencia: ' . $e->getMessage());
             return response()->json(['error' => 'Error al eliminar la ausencia: ' . $e->getMessage()], 500);
         }
     }
 
     public function sendMail(Request $request): JsonResponse
     {
-      auth()->user()->ausencias()->create($request->all());
-      Mail::to('luis@test.mail')->send(new AusenciaMail(''));
-      return response()->json(['message' => 'Mail sent successfully'], 200);
+        auth()->user()->ausencias()->create($request->all());
+        Mail::to('luis@test.mail')->send(new AusenciaMail(''));
+        return response()->json(['message' => 'Mail sent successfully'], 200);
     }
 
     public function getUserAusencias(Request $request): JsonResponse
@@ -119,11 +116,12 @@ class AusenciaController extends Controller
                 return response()->json(['error' => 'Usuario no autenticado'], 401);
             }
 
-            $ausencias = $user->ausencias()->get(['fecha', 'hora']);
+            $ausencias = $user->ausencias()->get(['id', 'fecha', 'hora']);
             return response()->json($ausencias, 200);
         } catch (Exception $e) {
-            Log::error('Error al obtener las ausencias: '.$e->getMessage());
+            Log::error('Error al obtener las ausencias: ' . $e->getMessage());
             return response()->json(['error' => 'Error al obtener las ausencias: ' . $e->getMessage()], 500);
         }
     }
 }
+

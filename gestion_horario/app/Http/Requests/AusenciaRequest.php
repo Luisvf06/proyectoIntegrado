@@ -25,7 +25,7 @@ class AusenciaRequest extends FormRequest
             'user_id' => 'required|exists:users,id',
             'fecha' => 'sometimes|required|date|after_or_equal:today',
             'hora' => 'nullable|date_format:H:i',
-            'fechas' => 'sometimes|required|array',
+            'fechas' => 'sometimes|required_without:fecha|array',
             'fechas.*' => 'date|after_or_equal:today',
         ];
     }
