@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ausencias', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-            $table->unsignedBigInteger('user_id');
-            $table->date('fecha');
-            $table->time('hora')->nullable();
+        Schema::table('ausencias', function (Blueprint $table) {
+            $table->time('hora')->nullable()->change();
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ausencias');
+        Schema::table('ausencias', function (Blueprint $table) {
+            $table->time('hora')->nullable(false)->change();
+        });
     }
 };

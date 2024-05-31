@@ -23,39 +23,70 @@ class AusenciaController extends Controller
     public function store(AusenciaRequest $request): JsonResponse
     {
         try {
-            // Validar los datos
+            // Log para verificar los datos validados
+            Log::info('Datos validados recibidos en store:', $request->all());
+    
             $data = $request->validated();
-
-            // Procesar los diferentes tipos de fecha
+    
+            // Log para verificar los datos después de la validación
+            Log::info('Datos después de la validación:', $data);
+    
             if (isset($data['fechas'])) {
-                // Caso de varias fechas
                 foreach ($data['fechas'] as $fecha) {
-                    // Convertir la fecha al formato correcto
+                    // Log para verificar cada fecha antes de formatear
+                    Log::info('Procesando fecha:', ['fecha' => $fecha]);
                     $formattedDate = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
-
+    
+                    // Log para verificar el formato de la fecha después de formatear
+                    Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
+    
                     Ausencia::create([
+                        'user_id' => $data['user_id'],
+                        'fecha' => $formattedDate,
+                        'hora' => $data['hora'] ?? null,
+                    ]);
+    
+                    // Log para confirmar que se ha creado una ausencia
+                    Log::info('Ausencia creada:', [
                         'user_id' => $data['user_id'],
                         'fecha' => $formattedDate,
                         'hora' => $data['hora'] ?? null,
                     ]);
                 }
             } else {
-                // Caso de una sola fecha
+                // Log para verificar la fecha antes de formatear
+                Log::info('Procesando única fecha:', ['fecha' => $data['fecha']]);
                 $formattedDate = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
-
+    
+                // Log para verificar el formato de la fecha después de formatear
+                Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
+    
                 Ausencia::create([
                     'user_id' => $data['user_id'],
                     'fecha' => $formattedDate,
                     'hora' => $data['hora'] ?? null,
                 ]);
+    
+                // Log para confirmar que se ha creado una ausencia
+                Log::info('Ausencia creada:', [
+                    'user_id' => $data['user_id'],
+                    'fecha' => $formattedDate,
+                    'hora' => $data['hora'] ?? null,
+                ]);
             }
-
+    
             return response()->json(['message' => 'Ausencia creada correctamente'], 201);
         } catch (Exception $e) {
-            Log::error('Error al crear la ausencia: '.$e->getMessage());
+            // Log para capturar el mensaje de error completo
+            Log::error('Error al crear la ausencia: '.$e->getMessage(), [
+                'exception' => $e,
+                'data' => $request->all(),
+            ]);
             return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
         }
     }
+    
+
 
     public function show($id): JsonResponse
     {

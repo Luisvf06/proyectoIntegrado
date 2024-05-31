@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mt-1.5 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-      <a href="/crearAusencia" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</a>
+      <button @click="addNewRow" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</button>
     </div>
 
     <div id="ausencias-container" class="mt-4">
@@ -17,6 +17,7 @@ export default {
     return {
       ausencias: [],
       editMode: {},
+      newRow: null,
     };
   },
   async mounted() {
@@ -40,6 +41,10 @@ export default {
     async getAusencias() {
       try {
         const token = sessionStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
         const response = await fetch('http://127.0.0.1:8080/api/ausencias', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -73,6 +78,11 @@ export default {
       table.appendChild(thead);
 
       const tbody = document.createElement('tbody');
+      if (this.newRow) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = this.getEditableRow(this.newRow, true);
+        tbody.appendChild(tr);
+      }
       this.ausencias.forEach(ausencia => {
         const tr = document.createElement('tr');
         tr.innerHTML = this.editMode[ausencia.id] ? this.getEditableRow(ausencia) : this.getReadOnlyRow(ausencia);
@@ -96,13 +106,13 @@ export default {
         </td>
       `;
     },
-    getEditableRow(ausencia) {
+    getEditableRow(ausencia, isNew = false) {
       return `
         <td class="border px-4 py-2">
-          <input type="date" v-model="ausencia.fecha">${ausencia.fecha}</input>
+          <input type="date" value="${ausencia.fecha || ''}">
         </td>
-        <td class="border px-4 py-2"><input type="time" v-model="ausencia.hora">${ausencia.hora}</td>
-        <td class="border px-4 py-2">${ausencia.id}</td>
+        <td class="border px-4 py-2"><input type="time" value="${ausencia.hora || ''}"></td>
+        <td class="border px-4 py-2">${isNew ? 'Nuevo' : ausencia.id}</td>
         <td class="border px-4 py-2 flex flex-col space-y-2">
           <button class="guardar-btn text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800" data-id="${ausencia.id}">Guardar</button>
           <button class="cancelar-btn text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800" data-id="${ausencia.id}">Cancelar</button>
@@ -121,38 +131,120 @@ export default {
       document.querySelectorAll('.eliminar-btn').forEach(button => {
         button.addEventListener('click', (event) => {
           const id = event.currentTarget.getAttribute('data-id');
-          this.eliminarAusencia(id);
+          if (confirm('¿Está seguro de que quiere eliminar este registro?')) {
+            this.eliminarAusencia(id);
+          }
         });
       });
 
       document.querySelectorAll('.guardar-btn').forEach(button => {
         button.addEventListener('click', (event) => {
           const id = event.currentTarget.getAttribute('data-id');
-          this.guardarAusencia(id);
+          if (id === 'Nuevo') {
+            this.guardarNuevaAusencia();
+          } else {
+            this.guardarAusencia(id);
+          }
         });
       });
 
       document.querySelectorAll('.cancelar-btn').forEach(button => {
         button.addEventListener('click', (event) => {
           const id = event.currentTarget.getAttribute('data-id');
-          this.editMode = { ...this.editMode, [id]: false };
+          if (id === 'Nuevo') {
+            this.newRow = null;
+          } else {
+            this.editMode = { ...this.editMode, [id]: false };
+          }
           this.renderTable();
         });
       });
+    },
+    addNewRow() {
+      this.newRow = { id: 'Nuevo', fecha: '', hora: '' };
+      this.renderTable();
+    },
+    async guardarNuevaAusencia() {
+      const row = document.querySelector('button[data-id="Nuevo"]').closest('tr');
+      const fechaInput = row.querySelector('input[type="date"]').value;
+      const horaInput = row.querySelector('input[type="time"]').value;
+
+      const date = new Date(fechaInput);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (date < today) {
+        console.error('Fecha inválida: la fecha no puede ser anterior a la fecha actual');
+        alert('Fecha inválida. La fecha no puede ser anterior a la fecha actual.');
+        return;
+      }
+
+      const newAusencia = { 
+        user_id: 1, // Reemplazar con el ID de usuario correcto
+        fecha: formattedDate, 
+        hora: horaInput || null
+      };
+
+      try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
+        console.log('Enviando petición con token:', token);
+        console.log('Datos enviados:', newAusencia);
+
+        const response = await fetch('http://127.0.0.1:8080/api/ausencias', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newAusencia)
+        });
+
+        console.log('Content-Type:', response.headers.get("content-type"));
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const responseText = await response.text();
+          console.log('Server response:', responseText);
+
+          if (!response.ok) {
+            throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}. Details: ${responseText}`);
+          }
+
+          const createdAusencia = JSON.parse(responseText);
+          this.ausencias.push(createdAusencia);
+          this.newRow = null;
+          this.renderTable();
+          location.reload();
+        } else {
+          const responseText = await response.text();
+          console.log('Unexpected server response:', responseText);
+          throw new Error(`Unexpected server response: ${responseText}`);
+        }
+      } catch (err) {
+        console.error('Error creating ausencia:', err);
+        alert(`Error creating ausencia: ${err.message}`);
+      }
     },
     async guardarAusencia(id) {
       const row = document.querySelector(`button[data-id="${id}"]`).closest('tr');
       const fechaInput = row.querySelector('input[type="date"]').value;
       const horaInput = row.querySelector('input[type="time"]').value;
 
-      // Formatear la fecha al formato d/m/y
       const date = new Date(fechaInput);
       const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses empiezan en 0
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       const formattedDate = `${day}/${month}/${year}`;
 
-      // Validar que la fecha no sea anterior a la fecha actual
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -163,10 +255,7 @@ export default {
       }
 
       const updatedFields = {};
-      console.log("ID:", id);
-      console.log("Ausencias:", this.ausencias);
-      
-      // Buscar la ausencia original por id
+
       const originalAusencia = this.ausencias.find(a => String(a.id) === String(id));
 
       if (!originalAusencia) {
@@ -191,8 +280,15 @@ export default {
 
       try {
         const token = sessionStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
+        console.log('Enviando petición con token:', token);
+        console.log('Datos enviados:', updatedFields);
+
         const response = await fetch(`http://127.0.0.1:8080/api/ausencias/${id}`, {
-          method: 'PATCH', 
+          method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -200,24 +296,35 @@ export default {
           body: JSON.stringify(updatedFields)
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to update ausencia: ${response.status} ${response.statusText}. Details: ${errorText}`);
+        console.log('Content-Type:', response.headers.get("content-type"));
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const responseText = await response.text();
+          console.log('Server response:', responseText);
+
+          if (!response.ok) {
+            throw new Error(`Failed to update ausencia: ${response.status} ${response.statusText}. Details: ${responseText}`);
+          }
+
+          const updatedAusencia = JSON.parse(responseText);
+          const index = this.ausencias.findIndex(a => a.id === id);
+          if (index !== -1) {
+            this.$set(this.ausencias, index, updatedAusencia);
+          }
+
+          this.editMode = { ...this.editMode, [id]: false };
+
+          this.renderTable();
+          location.reload();
+        } else {
+          const responseText = await response.text();
+          console.log('Unexpected server response:', responseText);
+          throw new Error(`Unexpected server response: ${responseText}`);
         }
-
-        // Actualizar el estado local sin recargar toda la tabla
-        const updatedAusencia = await response.json();
-        const index = this.ausencias.findIndex(a => a.id === id);
-        if (index !== -1) {
-          this.$set(this.ausencias, index, updatedAusencia.data);
-        }
-
-        this.editMode = { ...this.editMode, [id]: false };
-
-        // Recargar la página después de guardar los cambios
-        window.location.reload();
       } catch (err) {
         console.error('Error updating ausencia:', err);
+        alert(`Error updating ausencia: ${err.message}`);
       }
     },
     async eliminarAusencia(id) {
@@ -226,6 +333,12 @@ export default {
         return;
       }
       const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No se encontró el token de autenticación');
+      }
+
+      console.log('Enviando petición con token:', token);
+
       fetch(`http://127.0.0.1:8080/api/ausencias/${id}`, {
         method: 'DELETE',
         headers: {
@@ -234,11 +347,22 @@ export default {
         }
       })
       .then(async response => {
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Network response was not ok: ${response.statusText}. Details: ${errorText}`);
+        console.log('Content-Type:', response.headers.get("content-type"));
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const responseText = await response.text();
+          console.log('Server response:', responseText);
+
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}. Details: ${responseText}`);
+          }
+          return JSON.parse(responseText);
+        } else {
+          const responseText = await response.text();
+          console.log('Unexpected server response:', responseText);
+          throw new Error(`Unexpected server response: ${responseText}`);
         }
-        return response.json();
       })
       .then(data => {
         console.log('Ausencia eliminada:', data);
@@ -246,8 +370,8 @@ export default {
 
         this.ausencias = this.ausencias.filter(a => a.id !== id);
 
-        // Recargar la página después de eliminar la ausencia
-        window.location.reload();
+        this.renderTable();
+        location.reload();
       })
       .catch(error => {
         console.error('Error eliminando la ausencia:', error);
@@ -261,4 +385,3 @@ export default {
 <style scoped>
 /* Agrega tus estilos aquí */
 </style>
-
