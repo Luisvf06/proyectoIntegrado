@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mt-1.5 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-      <a href="/crearAusencia" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</a>
+      <button @click="showModal = true" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</button>
     </div>
 
     <div id="ausencias-container" class="mt-4">
@@ -17,6 +17,7 @@ export default {
     return {
       ausencias: [],
       editMode: {},
+      showModal: false, // Estado para controlar la visibilidad del modal
     };
   },
   async mounted() {
@@ -99,9 +100,9 @@ export default {
     getEditableRow(ausencia) {
       return `
         <td class="border px-4 py-2">
-          <input type="date" v-model="ausencia.fecha">
+          <input type="date" v-model="ausencia.fecha">${ausencia.fecha}</input>
         </td>
-        <td class="border px-4 py-2"><input type="time" v-model="ausencia.hora"></td>
+        <td class="border px-4 py-2"><input type="time" v-model="ausencia.hora">${ausencia.hora}</td>
         <td class="border px-4 py-2">${ausencia.id}</td>
         <td class="border px-4 py-2 flex flex-col space-y-2">
           <button class="guardar-btn text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800" data-id="${ausencia.id}">Guardar</button>
@@ -162,18 +163,42 @@ export default {
         return;
       }
 
+      const updatedFields = {};
+      console.log("ID:", id);
+      console.log("Ausencias:", this.ausencias);
+      
+      // Buscar la ausencia original por id
+      const originalAusencia = this.ausencias.find(a => String(a.id) === String(id));
+
+      if (!originalAusencia) {
+        console.error(`Ausencia with id ${id} not found`);
+        alert(`Ausencia con id ${id} no encontrada.`);
+        return;
+      }
+
+      if (fechaInput && originalAusencia.fecha !== formattedDate) {
+        updatedFields.fecha = formattedDate;
+      }
+
+      if (horaInput && originalAusencia.hora !== horaInput) {
+        updatedFields.hora = horaInput;
+      }
+
+      if (Object.keys(updatedFields).length === 0) {
+        console.log('No changes detected, skipping update.');
+        this.editMode = { ...this.editMode, [id]: false };
+        return;
+      }
+
       try {
         const token = sessionStorage.getItem('authToken');
         const response = await fetch(`http://127.0.0.1:8080/api/ausencias/${id}`, {
-          method: 'PATCH', // Cambiado a PATCH
+          method: 'PATCH', 
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            fecha: formattedDate,
-            hora: horaInput,
-          })
+          body: JSON.stringify(updatedFields)
         });
 
         if (!response.ok) {
@@ -189,6 +214,9 @@ export default {
         }
 
         this.editMode = { ...this.editMode, [id]: false };
+
+        // Recargar la página después de guardar los cambios
+        window.location.reload();
       } catch (err) {
         console.error('Error updating ausencia:', err);
       }
@@ -218,6 +246,9 @@ export default {
         alert('Ausencia eliminada correctamente');
 
         this.ausencias = this.ausencias.filter(a => a.id !== id);
+
+        // Recargar la página después de eliminar la ausencia
+        window.location.reload();
       })
       .catch(error => {
         console.error('Error eliminando la ausencia:', error);
@@ -229,5 +260,5 @@ export default {
 </script>
 
 <style scoped>
-
+/* Agrega tus estilos aquí */
 </style>
