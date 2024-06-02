@@ -65,10 +65,12 @@ export default {
       thead.className = 'bg-gray-800 text-white';
       thead.innerHTML = `
         <tr>
-          <th class="w-1/4 px-4 py-2">Nombre del Usuario</th>
-          <th class="w-1/4 px-4 py-2">Fecha</th>
-          <th class="w-1/4 px-4 py-2">Hora</th>
-          <th class="w-1/4 px-4 py-2">ID</th>
+          <th class="w-1/6 px-4 py-2">Nombre del Usuario</th>
+          <th class="w-1/6 px-4 py-2">Fecha</th>
+          <th class="w-1/6 px-4 py-2">Hora</th>
+          <th class="w-1/6 px-4 py-2">ID</th>
+          <th class="w-1/6 px-4 py-2">Aula</th>
+          <th class="w-1/6 px-4 py-2">Grupo</th>
         </tr>
       `;
       table.appendChild(thead);
@@ -86,11 +88,21 @@ export default {
       container.appendChild(table);
     },
     getReadOnlyRow(falta) {
+      const fechaFormateada = new Date(falta.fecha).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+
+      const hora = falta.hora ? falta.hora : 'todo el día';
+
       return `
         <td class="border px-4 py-2 text-black">${falta.user_name}</td>
-        <td class="border px-4 py-2 text-black">${falta.fecha}</td>
-        <td class="border px-4 py-2 text-black">${falta.hora}</td>
+        <td class="border px-4 py-2 text-black">${fechaFormateada}</td>
+        <td class="border px-4 py-2 text-black">${hora}</td>
         <td class="border px-4 py-2 text-black">${falta.id}</td>
+        <td class="border px-4 py-2 text-black">${falta.aula_descripcion}</td>
+        <td class="border px-4 py-2 text-black">${falta.grupo_descripcion}</td>
       `;
     }
   }
@@ -98,12 +110,9 @@ export default {
 </script>
 
 <style scoped>
-/* Estilo para el texto blanco */
 .text-white {
   color: white;
 }
-
-/* Estilo para el texto negro dentro de las celdas */
 .text-black {
   color: black;
 }

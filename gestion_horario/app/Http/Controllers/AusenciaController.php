@@ -186,37 +186,43 @@ class AusenciaController extends Controller
     public function getAusenciasHoy(): JsonResponse
     {
         try {
-            // Obtener la fecha de hoy en formato 'Y-d-m'
-            $hoy = Carbon::now()->format('Y-d-m'); // Ajustar formato a 'YYYY-DD-MM'
-            
-            // Agregar un log para verificar la fecha de hoy
+            $hoy = Carbon::now()->format('Y-m-d');
             Log::info('Fecha de hoy ajustada: ' . $hoy);
     
-            // Obtener las ausencias de todos los usuarios para la fecha de hoy con el nombre del usuario
-            $ausencias = Ausencia::with('user:id,name')
+            // Obtener las ausencias de todos los usuarioshoy
+            $ausencias = Ausencia::with(['user.horarios.aula:id,descripcion', 'user.horarios.grupo:id,descripcion'])
                                 ->whereDate('fecha', $hoy)
                                 ->get(['id', 'user_id', 'fecha', 'hora']);
     
-            // Agregar un log para verificar los resultados obtenidos
             Log::info('Ausencias obtenidas: ' . $ausencias->count());
+            Log::info('Ausencias datos: ' . $ausencias->toJson());
     
-            // Formatear la respuesta para incluir el user_name
-            $ausenciasConNombre = $ausencias->map(function($ausencia) {
-                return [
-                    'id' => $ausencia->id,
-                    'user_id' => $ausencia->user_id,
-                    'user_name' => $ausencia->user->name,
-                    'fecha' => $ausencia->fecha,
-                    'hora' => $ausencia->hora,
-                ];
-            });
+            // Formatear para incluir el user_name, aula y grupo
+            $ausenciasConDetalles = $ausencias->map(function($ausencia) {
+                $horarios = $ausencia->user->horarios;
+                Log::info('Horarios para usuario ' . $ausencia->user_id . ': ' . $horarios->toJson());
     
-            Log::info('Ausencias con nombre: ' . $ausenciasConNombre->toJson());
+                return $horarios->map(function($horario) use ($ausencia) {
+                    return [
+                        'id' => $ausencia->id,
+                        'user_id' => $ausencia->user_id,
+                        'user_name' => $ausencia->user->name,
+                        'fecha' => $ausencia->fecha,
+                        'hora' => $ausencia->hora,
+                        'aula_descripcion' => $horario->aula->descripcion,
+                        'grupo_descripcion' => $horario->grupo->descripcion,
+                    ];
+                });
+            })->flatten();
     
-            return response()->json($ausenciasConNombre, 200);
+            Log::info('Ausencias con detalles: ' . $ausenciasConDetalles->toJson());
+    
+            return response()->json($ausenciasConDetalles, 200);
         } catch (Exception $e) {
             Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
             return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
         }
     }
+    
+
 }
