@@ -11,7 +11,10 @@ use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AusenciaMail;
-
+use App\Models\User;
+use App\Models\Horario;
+use App\Models\Grupo;
+use App\Models\Aula;
 class AusenciaController extends Controller
 {
     public function index(): JsonResponse
@@ -223,6 +226,64 @@ class AusenciaController extends Controller
             return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
         }
     }
-    
 
+    //Función para obtener las ausencias de un usuario elegido además de la clase y grupo 
+    public function getAusenciasWithDetails($id): JsonResponse
+    {
+        try {
+            Log::info('Función getAusenciasWithDetails llamada con ID: ' . $id);
+            $user = User::find($id);
+            if (!$user) {
+                Log::error('Usuario no encontrado con ID: ' . $id);
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
+
+            // Log para verificar el usuario encontrado
+            Log::info('Usuario encontrado: ' . $user->name);
+
+            // Obtener las ausencias del usuario
+            $ausencias = Ausencia::where('user_id', $user->id)->get();
+
+            // Log para verificar las ausencias encontradas
+            Log::info('Ausencias encontradas: ' . $ausencias->count());
+
+            // Preparar las ausencias
+            $ausenciasConDetalles = $ausencias->map(function($ausencia) use ($user) {
+                // Determinar el día de la semana
+                $diaSemana = Carbon::parse($ausencia->fecha)->dayOfWeek;
+
+                //verificar el día de la semana
+                Log::info('Fecha de ausencia: ' . $ausencia->fecha . ' - Día de la semana: ' . $diaSemana);
+
+                // Buscar los horarios del usuario para el día
+                $horarios = Horario::where('user_id', $user->id)
+                                    ->where('dia', $diaSemana)
+                                    ->with(['aula', 'grupo'])
+                                    ->get();
+
+                // Log para verificar los horarios encontrados
+                Log::info('Horarios encontrados para el día de la semana ' . $diaSemana . ': ' . $horarios->count());
+
+                //revisar esto
+                return $horarios->map(function($horario) use ($ausencia, $user) {
+                    return [
+                        'id' => $ausencia->id,
+                        'fecha' => $ausencia->fecha,
+                        'hora' => $ausencia->hora,
+                        'user_name' => $user->name,
+                        'aula_descripcion' => $horario->aula->descripcion ?? 'No disponible',
+                        'grupo_descripcion' => $horario->grupo->descripcion ?? 'No disponible',
+                    ];
+                });
+            })->flatten();
+
+            // ausencias encontrados
+            Log::info('Detalles de ausencias encontrados: ' . $ausenciasConDetalles->count());
+
+            return response()->json($ausenciasConDetalles, 200);
+        } catch (Exception $e) {
+            Log::error('Error al obtener las ausencias: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las ausencias: ' . $e->getMessage()], 500);
+        }
+    }
 }

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController; #Importación del controller desde su directorio
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AusenciaController;
 use App\Http\Controllers\Api\V1\LoginController;
@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\XmlController;
 use App\Http\Controllers\AsignaturaController;
 use App\Http\Controllers\HorarioController;
-use App\Http\Controllers\AulaController;    
+use App\Http\Controllers\AulaController;
 use App\Http\Controllers\FranjaController;
 use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\PeriodoController;
@@ -20,20 +20,21 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-
 Route::post('/login', [LoginController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user/horario', [HorarioController::class, 'getUserHorario']);
-    Route::resource('/users', UserController::class); //Para ver las rutas del resource usar en la terminal php artisan route:list
+    Route::resource('/users', UserController::class);
     Route::resource('/ausencias', AusenciaController::class);
     Route::resource('/asignaturas', AsignaturaController::class);
     Route::post('/upload-xml', [XmlController::class, 'uploadXML']);
     Route::resource('/horarios', HorarioController::class);
     Route::get('/ausencias', [AusenciaController::class, 'getUserAusencias']);
+    Route::get('users/{id}/ausencias', [AusenciaController::class, 'getUserAusencias']);
     Route::get('/ausenciasHoy', [AusenciaController::class, 'getAusenciasHoy']);
+    Route::get('/getAusenciasUsuario/{id}', [AusenciaController::class, 'getAusenciasUsuario']);
+    Route::get('/users/{id}/ausencias-with-details', [AusenciaController::class, 'getAusenciasWithDetails']);
     Route::resource('/aulas', AulaController::class);
     Route::resource('/franjas', FranjaController::class);
     Route::resource('/grupos', GrupoController::class);
@@ -53,7 +54,6 @@ Route::get('/send-test-email', function () {
 });
 
 // Ruta OPTIONS para manejar las solicitudes preflight
-
 Route::options('/{any}', function (Request $request) {
     return response('', 200)
         ->header('Access-Control-Allow-Origin', '*')

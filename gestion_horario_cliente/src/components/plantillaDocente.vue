@@ -1,5 +1,6 @@
 <template>
   <div class="container mx-auto flex flex-wrap py-4">
+    <!-- Formulario para cargar archivos XML -->
     <div class="w-full md:w-1/2 flex flex-col items-start">
       <form @submit.prevent="handleFileUpload" class="mb-4">
         <label for="file" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Adjunte el documento .xml:</label>
@@ -9,12 +10,11 @@
         </div>
       </form>
     </div>
+
+    <!-- Búsqueda de docentes -->
     <div class="w-full md:w-1/2 flex flex-col items-end">
-      <div class="flex items-center">
-        <select v-model="selectedProfessor" class="block w-2/3 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mr-4">
-          <option value="">Escoja un profesor</option>
-          <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-        </select>
+      <div class="flex items-center relative">
+        <input v-model="searchTerm" @input="filterUsers" placeholder="Escriba para buscar..." class="block w-96 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 mr-4">
         <button v-if="selectedProfessor" @click="editProfessor" class="edit-button" title="Modificar docente">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" color="white">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -30,9 +30,12 @@
             <path d="M6 6l12 12"/>
           </svg>
         </button>
+        <ul v-if="searchTerm" class="absolute top-10 left-0 w-96 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg z-10">
+          <li v-for="u in filteredUsers" :key="u.id" @click="selectProfessor(u.id)" class="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">{{ u.name }}</li>
+        </ul>
       </div>
       <div class="mt-4 flex space-x-4">
-        <button v-if="selectedProfessor" @click="showFaltas" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700">Ver Faltas</button>
+        <button v-if="selectedProfessor" @click="fetchAusencias" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700">Ver Faltas</button>
         <button v-if="selectedProfessor" @click="showHorario" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700">Ver Horario</button>
       </div>
     </div>
@@ -89,14 +92,21 @@
     <table border="1" class="min-w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200">
       <thead>
         <tr>
-          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Día</th>
+          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Fecha</th>
           <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Hora</th>
-          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Clase</th>
-          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Descripción</th>
+          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Nombre</th>
+          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Aula</th>
+          <th class="py-2 px-4 border-b-2 border-gray-200 dark:border-gray-600">Grupo</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Necesito los datos para poder hacer las celdas -->
+        <tr v-for="ausencia in ausencias" :key="ausencia.id">
+          <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-600">{{ ausencia.fecha }}</td>
+          <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-600">{{ ausencia.hora }}</td>
+          <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-600">{{ ausencia.user_name }}</td>
+          <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-600">{{ ausencia.user}}</td>
+          <td class="py-2 px-4 border-b border-gray-200 dark:border-gray-600">{{ ausencia.grupo_descripcion }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -124,6 +134,8 @@ export default {
   data() {
     return {
       users: [],
+      ausencias: [],
+      searchTerm: '',
       selectedProfessor: '',
       isFaltasVisible: false,
       isHorarioVisible: false,
@@ -134,7 +146,8 @@ export default {
         user_name: '',
         professor_cod: '',
         role_id: ''
-      }
+      },
+      filteredUsers: []
     };
   },
   methods: {
@@ -179,11 +192,39 @@ export default {
         alert(`Error al procesar el archivo: ${error.message}`);
       }
     },
-    showFaltas() {
-      this.isFaltasVisible = true;
-      this.isHorarioVisible = false;
+    async fetchAusencias() {
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        console.error('No se encontró el token de autenticación.');
+        alert('No se encontró el token de autenticación. Por favor, inicie sesión.');
+        return;
+      }
+
+      console.log(`Obteniendo ausencias para el profesor con ID: ${this.selectedProfessor}`);
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8080/api/users/${this.selectedProfessor}/ausencias`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text(); 
+          throw new Error(`Error en la respuesta del servidor: ${response.statusText} - ${errorText}`);
+        }
+
+        const ausencias = await response.json();
+        console.log('Ausencias obtenidas:', ausencias);
+        this.ausencias = ausencias;
+        this.isFaltasVisible = true;
+        this.isHorarioVisible = false;
+      } catch (error) {
+        console.error('Error al obtener las ausencias:', error.message);  
+        alert(`Error al obtener las ausencias: ${error.message}`);
+      }
     },
-    showHorario() {
+    async showHorario() {
       this.isFaltasVisible = false;
       this.isHorarioVisible = true;
     },
@@ -236,8 +277,7 @@ export default {
         console.log('Usuario actualizado:', result);
         alert('Usuario actualizado correctamente.');
         this.isEditVisible = false;
-        // Actualiza la lista de usuarios 
-        this.loadUsers();
+        this.loadUsers(); 
       } catch (error) {
         console.error('Error al actualizar el usuario:', error.message);  
         alert(`Error al actualizar el usuario: ${error.message}`);
@@ -268,7 +308,6 @@ export default {
           }
           alert('Profesor eliminado correctamente.');
           this.selectedProfessor = '';
-          
           this.loadUsers();
         } catch (error) {
           console.error('Error al eliminar el profesor:', error.message);  
@@ -284,6 +323,8 @@ export default {
         return;
       }
 
+      console.log('Cargando lista de usuarios...');
+
       try {
         const response = await fetch('http://127.0.0.1:8080/api/users', {
           headers: {
@@ -295,11 +336,21 @@ export default {
           throw new Error(`Error en la respuesta del servidor: ${response.statusText} - ${errorText}`);
         }
         const data = await response.json();
+        console.log('Usuarios cargados:', data);
         this.users = data;
+        this.filteredUsers = data;
       } catch (error) {
         console.error('Error al obtener la lista de usuarios:', error.message);  
         alert(`Error al obtener la lista de usuarios: ${error.message}`);
       }
+    },
+    filterUsers() {
+      this.filteredUsers = this.users.filter(user => user.name.toLowerCase().includes(this.searchTerm.toLowerCase()));
+    },
+    selectProfessor(professorId) {
+      this.selectedProfessor = professorId;
+      this.searchTerm = '';
+      this.filteredUsers = [];
     }
   },
   watch: {
@@ -323,5 +374,10 @@ input { color: aliceblue; }
   background: none;
   border: none;
   cursor: pointer;
+}
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
 </style>
