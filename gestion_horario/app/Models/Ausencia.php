@@ -13,8 +13,8 @@ class Ausencia extends Model
     use HasFactory;
 
     protected $guarded = [];
-
-    public function users(): BelongsTo
+    protected $dates = ['fecha'];
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

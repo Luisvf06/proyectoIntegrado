@@ -182,5 +182,41 @@ class AusenciaController extends Controller
             return response()->json(['error' => 'Error al obtener las ausencias: ' . $e->getMessage()], 500);
         }
     }
-}
 
+    public function getAusenciasHoy(): JsonResponse
+    {
+        try {
+            // Obtener la fecha de hoy en formato 'Y-d-m'
+            $hoy = Carbon::now()->format('Y-d-m'); // Ajustar formato a 'YYYY-DD-MM'
+            
+            // Agregar un log para verificar la fecha de hoy
+            Log::info('Fecha de hoy ajustada: ' . $hoy);
+    
+            // Obtener las ausencias de todos los usuarios para la fecha de hoy con el nombre del usuario
+            $ausencias = Ausencia::with('user:id,name')
+                                ->whereDate('fecha', $hoy)
+                                ->get(['id', 'user_id', 'fecha', 'hora']);
+    
+            // Agregar un log para verificar los resultados obtenidos
+            Log::info('Ausencias obtenidas: ' . $ausencias->count());
+    
+            // Formatear la respuesta para incluir el user_name
+            $ausenciasConNombre = $ausencias->map(function($ausencia) {
+                return [
+                    'id' => $ausencia->id,
+                    'user_id' => $ausencia->user_id,
+                    'user_name' => $ausencia->user->name,
+                    'fecha' => $ausencia->fecha,
+                    'hora' => $ausencia->hora,
+                ];
+            });
+    
+            Log::info('Ausencias con nombre: ' . $ausenciasConNombre->toJson());
+    
+            return response()->json($ausenciasConNombre, 200);
+        } catch (Exception $e) {
+            Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
+        }
+    }
+}

@@ -1,11 +1,44 @@
 <template>
   <div>
     <div class="mt-1.5 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-      <button @click="addNewRow" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</button>
+      <button @click="openModal" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</button>
     </div>
 
     <div id="ausencias-container" class="mt-4">
       <div class="text-center py-4">Cargando ausencias...</div>
+    </div>
+
+    <!-- Modal -->
+    <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Modal content -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Crear Nueva Ausencia</h3>
+            <div class="mt-2">
+              <form @submit.prevent="guardarNuevaAusencia">
+                <div class="mt-4">
+                  <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                  <input type="date" v-model="newAusencia.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="mt-4">
+                  <label for="hora" class="block text-sm font-medium text-gray-700">Hora</label>
+                  <input type="time" v-model="newAusencia.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="mt-4 flex justify-end">
+                  <button @click="closeModal" type="button" class="mr-2 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancelar</button>
+                  <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -18,6 +51,11 @@ export default {
       ausencias: [],
       editMode: {},
       newRow: null,
+      showModal: false,
+      newAusencia: {
+        fecha: '',
+        hora: ''
+      }
     };
   },
   async mounted() {
@@ -160,16 +198,16 @@ export default {
         });
       });
     },
-    addNewRow() {
-      this.newRow = { id: 'Nuevo', fecha: '', hora: '' };
-      this.renderTable();
+    openModal() {
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
     },
     async guardarNuevaAusencia() {
-      const row = document.querySelector('button[data-id="Nuevo"]').closest('tr');
-      const fechaInput = row.querySelector('input[type="date"]').value;
-      const horaInput = row.querySelector('input[type="time"]').value;
+      const { fecha, hora } = this.newAusencia;
 
-      const date = new Date(fechaInput);
+      const date = new Date(fecha);
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
@@ -187,7 +225,7 @@ export default {
       const newAusencia = { 
         user_id: 1, // Reemplazar con el ID de usuario correcto
         fecha: formattedDate, 
-        hora: horaInput || null
+        hora: hora || null
       };
 
       try {
@@ -221,9 +259,9 @@ export default {
 
           const createdAusencia = JSON.parse(responseText);
           this.ausencias.push(createdAusencia);
-          this.newRow = null;
-          this.renderTable();
-          location.reload();
+          this.newAusencia = { fecha: '', hora: '' };
+          this.closeModal();
+          await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
         } else {
           const responseText = await response.text();
           console.log('Unexpected server response:', responseText);
@@ -315,8 +353,7 @@ export default {
 
           this.editMode = { ...this.editMode, [id]: false };
 
-          this.renderTable();
-          location.reload();
+          await this.fetchAusencias();  // Actualizar tabla después de guardar una ausencia
         } else {
           const responseText = await response.text();
           console.log('Unexpected server response:', responseText);
@@ -364,14 +401,13 @@ export default {
           throw new Error(`Unexpected server response: ${responseText}`);
         }
       })
-      .then(data => {
+      .then(async data => {
         console.log('Ausencia eliminada:', data);
         alert('Ausencia eliminada correctamente');
 
         this.ausencias = this.ausencias.filter(a => a.id !== id);
 
-        this.renderTable();
-        location.reload();
+        await this.fetchAusencias();  // Actualizar tabla después de eliminar una ausencia
       })
       .catch(error => {
         console.error('Error eliminando la ausencia:', error);

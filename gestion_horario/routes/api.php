@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload-xml', [XmlController::class, 'uploadXML']);
     Route::resource('/horarios', HorarioController::class);
     Route::get('/ausencias', [AusenciaController::class, 'getUserAusencias']);
+    Route::get('/ausenciasHoy', [AusenciaController::class, 'getAusenciasHoy']);
     Route::resource('/aulas', AulaController::class);
     Route::resource('/franjas', FranjaController::class);
     Route::resource('/grupos', GrupoController::class);
