@@ -31,6 +31,10 @@ class FranjaController extends Controller
     {
         return response()->json(Franja::all());
     }
-
+    public function getFranjaByHora($hora)
+    {
+        $franja = Franja::where('hora_desde', '<=', $hora)->where('hora_hasta', '>=', $hora)->first();
+        return $franja;
+    }
 }
 

@@ -1,11 +1,35 @@
 <template>
-  <div>
-    <div class="mt-1.5 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+  <div class="container mx-auto">
+    <div class="mt-4 flex justify-between items-center">
+      <button @click="prevPage" :disabled="currentPage === 1" class="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800">Anterior</button>
       <button @click="openModal" class="text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Crear Ausencia</button>
+      <button @click="nextPage" :disabled="currentPage === totalPages" class="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800">Siguiente</button>
     </div>
 
-    <div id="ausencias-container" class="mt-4">
-      <div class="text-center py-4">Cargando ausencias...</div>
+    <div id="ausencias-container" class="mt-4 flex justify-center">
+      <div v-if="loading" class="text-center py-4">Cargando ausencias...</div>
+      <div v-if="!loading && ausencias.length === 0" class="text-center py-4">No hay ausencias registradas</div>
+      <div v-if="!loading && ausencias.length > 0" class="w-3/4">
+        <table class="min-w-full bg-gray-800 text-white mt-4">
+          <thead class="bg-gray-900 text-white">
+            <tr>
+              <th class="w-1/2 px-4 py-2">Fecha</th>
+              <th class="w-1/2 px-4 py-2">Hora</th>
+              <th class="w-1/2 px-4 py-2">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="ausencia in paginatedAusencias" :key="ausencia.id">
+              <td class="border px-4 py-2">{{ ausencia.fecha }}</td>
+              <td class="border px-4 py-2">{{ ausencia.hora }}</td>
+              <td class="border px-4 py-2 flex flex-col space-y-2">
+                <button @click="editAusencia(ausencia.id)" class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">Editar</button>
+                <button @click="confirmEliminarAusencia(ausencia.id)" class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Modal -->
@@ -40,6 +64,11 @@
         </div>
       </div>
     </div>
+
+    <!-- Mensaje de confirmación -->
+    <div v-if="showSuccessMessage" class="fixed bottom-0 right-0 mb-4 mr-4 bg-green-500 text-white p-4 rounded-lg shadow-lg">
+      Ausencia creada correctamente.
+    </div>
   </div>
 </template>
 
@@ -52,28 +81,64 @@ export default {
       editMode: {},
       newRow: null,
       showModal: false,
+      showSuccessMessage: false,
       newAusencia: {
         fecha: '',
         hora: ''
-      }
+      },
+      currentPage: 1,
+      itemsPerPage: 10,
+      loading: true,
+      userId: null
     };
   },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.ausencias.length / this.itemsPerPage);
+    },
+    paginatedAusencias() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.ausencias.slice(start, end);
+    }
+  },
   async mounted() {
+    await this.fetchUserId();  // Fetch user ID when the component mounts
     await this.fetchAusencias();
   },
   methods: {
+    async fetchUserId() {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
+        const response = await fetch('http://127.0.0.1:8080/api/user', { // Ajusta este endpoint según tu backend
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user info: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+        this.userId = data.id;
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+        alert(`Error fetching user info: ${err.message}`);
+      }
+    },
     async fetchAusencias() {
       const container = document.getElementById('ausencias-container');
+      this.loading = true;
       try {
         const ausencias = await this.getAusencias();
         this.ausencias = ausencias;
-        if (ausencias.length === 0) {
-          container.innerHTML = '<div class="text-center py-4">No hay ausencias registradas</div>';
-        } else {
-          this.renderTable();
-        }
       } catch (error) {
         container.innerHTML = `<div class="text-center py-4 text-red-500">Error: ${error.message}</div>`;
+      } finally {
+        this.loading = false;
       }
     },
     async getAusencias() {
@@ -98,105 +163,15 @@ export default {
         return [];
       }
     },
-    renderTable() {
-      const container = document.getElementById('ausencias-container');
-      const table = document.createElement('table');
-      table.className = 'min-w-full bg-white mt-4';
-
-      const thead = document.createElement('thead');
-      thead.className = 'bg-gray-800 text-white';
-      thead.innerHTML = `
-        <tr>
-          <th class="w-1/4 px-4 py-2">Fecha</th>
-          <th class="w-1/4 px-4 py-2">Hora</th>
-          <th class="w-1/4 px-4 py-2">ID</th>
-          <th class="w-1/4 px-4 py-2">Acciones</th>
-        </tr>
-      `;
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-      if (this.newRow) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = this.getEditableRow(this.newRow, true);
-        tbody.appendChild(tr);
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
       }
-      this.ausencias.forEach(ausencia => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = this.editMode[ausencia.id] ? this.getEditableRow(ausencia) : this.getReadOnlyRow(ausencia);
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-
-      container.innerHTML = '';
-      container.appendChild(table);
-
-      this.addEventListeners();
     },
-    getReadOnlyRow(ausencia) {
-      return `
-        <td class="border px-4 py-2">${ausencia.fecha}</td>
-        <td class="border px-4 py-2">${ausencia.hora}</td>
-        <td class="border px-4 py-2">${ausencia.id}</td>
-        <td class="border px-4 py-2 flex flex-col space-y-2">
-          <button class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900" data-id="${ausencia.id}">Editar</button>
-          <button class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900" data-id="${ausencia.id}">Eliminar</button>
-        </td>
-      `;
-    },
-    getEditableRow(ausencia, isNew = false) {
-      return `
-        <td class="border px-4 py-2">
-          <input type="date" value="${ausencia.fecha || ''}">
-        </td>
-        <td class="border px-4 py-2"><input type="time" value="${ausencia.hora || ''}"></td>
-        <td class="border px-4 py-2">${isNew ? 'Nuevo' : ausencia.id}</td>
-        <td class="border px-4 py-2 flex flex-col space-y-2">
-          <button class="guardar-btn text-green-700 hover:text-white border border-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800" data-id="${ausencia.id}">Guardar</button>
-          <button class="cancelar-btn text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800" data-id="${ausencia.id}">Cancelar</button>
-        </td>
-      `;
-    },
-    addEventListeners() {
-      document.querySelectorAll('.editar-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const id = event.currentTarget.getAttribute('data-id');
-          this.editMode = { ...this.editMode, [id]: true };
-          this.renderTable();
-        });
-      });
-
-      document.querySelectorAll('.eliminar-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const id = event.currentTarget.getAttribute('data-id');
-          if (confirm('¿Está seguro de que quiere eliminar este registro?')) {
-            this.eliminarAusencia(id);
-          }
-        });
-      });
-
-      document.querySelectorAll('.guardar-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const id = event.currentTarget.getAttribute('data-id');
-          if (id === 'Nuevo') {
-            this.guardarNuevaAusencia();
-          } else {
-            this.guardarAusencia(id);
-          }
-        });
-      });
-
-      document.querySelectorAll('.cancelar-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const id = event.currentTarget.getAttribute('data-id');
-          if (id === 'Nuevo') {
-            this.newRow = null;
-          } else {
-            this.editMode = { ...this.editMode, [id]: false };
-          }
-          this.renderTable();
-        });
-      });
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
     },
     openModal() {
       this.showModal = true;
@@ -223,7 +198,7 @@ export default {
       }
 
       const newAusencia = { 
-        user_id: 1, // Reemplazar con el ID de usuario correcto
+        user_id: this.userId, // Usar el user_id obtenido
         fecha: formattedDate, 
         hora: hora || null
       };
@@ -246,8 +221,6 @@ export default {
           body: JSON.stringify(newAusencia)
         });
 
-        console.log('Content-Type:', response.headers.get("content-type"));
-
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
           const responseText = await response.text();
@@ -261,6 +234,8 @@ export default {
           this.ausencias.push(createdAusencia);
           this.newAusencia = { fecha: '', hora: '' };
           this.closeModal();
+          this.showSuccessMessage = true;
+          setTimeout(() => this.showSuccessMessage = false, 3000);
           await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
         } else {
           const responseText = await response.text();
@@ -334,8 +309,6 @@ export default {
           body: JSON.stringify(updatedFields)
         });
 
-        console.log('Content-Type:', response.headers.get("content-type"));
-
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
           const responseText = await response.text();
@@ -384,9 +357,8 @@ export default {
         }
       })
       .then(async response => {
-        console.log('Content-Type:', response.headers.get("content-type"));
-
         const contentType = response.headers.get("content-type");
+
         if (contentType && contentType.indexOf("application/json") !== -1) {
           const responseText = await response.text();
           console.log('Server response:', responseText);
@@ -413,6 +385,14 @@ export default {
         console.error('Error eliminando la ausencia:', error);
         alert(`Error eliminando la ausencia: ${error.message}`);
       });
+    },
+    editAusencia(id) {
+      this.editMode = { ...this.editMode, [id]: true };
+    },
+    confirmEliminarAusencia(id) {
+      if (confirm('¿Está seguro de que quiere eliminar este registro?')) {
+        this.eliminarAusencia(id);
+      }
     }
   }
 }

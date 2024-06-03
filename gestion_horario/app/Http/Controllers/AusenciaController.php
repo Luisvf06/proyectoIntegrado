@@ -38,7 +38,7 @@ class AusenciaController extends Controller
                 foreach ($data['fechas'] as $fecha) {
                     // Log para verificar cada fecha antes de formatear
                     Log::info('Procesando fecha:', ['fecha' => $fecha]);
-                    $formattedDate = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                    $formattedDate = Carbon::createFromFormat('m/d/Y', $fecha)->format('Y-m-d');
     
                     // Log para verificar el formato de la fecha después de formatear
                     Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
@@ -59,7 +59,7 @@ class AusenciaController extends Controller
             } else {
                 // Log para verificar la fecha antes de formatear
                 Log::info('Procesando única fecha:', ['fecha' => $data['fecha']]);
-                $formattedDate = Carbon::createFromFormat('d/m/Y', $data['fecha'])->format('Y-m-d');
+                $formattedDate = Carbon::createFromFormat('m/d/Y', $data['fecha'])->format('Y-m-d');
     
                 // Log para verificar el formato de la fecha después de formatear
                 Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
@@ -89,6 +89,7 @@ class AusenciaController extends Controller
         }
     }
     
+    
 
 
     public function show($id): JsonResponse
@@ -115,15 +116,15 @@ class AusenciaController extends Controller
     try {
         if ($request->has('fecha')) {
             // Convertir la fecha al formato correcto
-            $fecha = \DateTime::createFromFormat('d/m/Y', $request->fecha);
+            $fecha = Carbon::createFromFormat('m/d/Y', $request->fecha);
             if (!$fecha) {
                 Log::error('Formato de fecha inválido: ' . $request->fecha);
                 return response()->json(['error' => 'Formato de fecha inválido'], 400);
             }
 
             // Verificar que la fecha no sea anterior a la fecha actual
-            $fechaActual = new \DateTime();
-            if ($fecha < $fechaActual->setTime(0, 0, 0)) {
+            $fechaActual = Carbon::now()->startOfDay();
+            if ($fecha->lessThan($fechaActual)) {
                 Log::error('La fecha proporcionada es anterior a la fecha actual: ' . $request->fecha);
                 return response()->json(['error' => 'La fecha no puede ser anterior a la fecha actual'], 400);
             }
@@ -144,8 +145,6 @@ class AusenciaController extends Controller
         return response()->json(['error' => 'Error al actualizar la ausencia: ' . $e->getMessage()], 500);
     }
 }
-
-
     public function destroy($id): JsonResponse
     {
         $ausencia = Ausencia::find($id);
@@ -187,45 +186,40 @@ class AusenciaController extends Controller
     }
 
     public function getAusenciasHoy(): JsonResponse
-    {
-        try {
-            $hoy = Carbon::now()->format('Y-m-d');
-            Log::info('Fecha de hoy ajustada: ' . $hoy);
-    
-            // Obtener las ausencias de todos los usuarioshoy
-            $ausencias = Ausencia::with(['user.horarios.aula:id,descripcion', 'user.horarios.grupo:id,descripcion'])
-                                ->whereDate('fecha', $hoy)
-                                ->get(['id', 'user_id', 'fecha', 'hora']);
-    
-            Log::info('Ausencias obtenidas: ' . $ausencias->count());
-            Log::info('Ausencias datos: ' . $ausencias->toJson());
-    
-            // Formatear para incluir el user_name, aula y grupo
-            $ausenciasConDetalles = $ausencias->map(function($ausencia) {
-                $horarios = $ausencia->user->horarios;
-                Log::info('Horarios para usuario ' . $ausencia->user_id . ': ' . $horarios->toJson());
-    
-                return $horarios->map(function($horario) use ($ausencia) {
-                    return [
-                        'id' => $ausencia->id,
-                        'user_id' => $ausencia->user_id,
-                        'user_name' => $ausencia->user->name,
-                        'fecha' => $ausencia->fecha,
-                        'hora' => $ausencia->hora,
-                        'aula_descripcion' => $horario->aula->descripcion,
-                        'grupo_descripcion' => $horario->grupo->descripcion,
-                    ];
-                });
-            })->flatten();
-    
-            Log::info('Ausencias con detalles: ' . $ausenciasConDetalles->toJson());
-    
-            return response()->json($ausenciasConDetalles, 200);
-        } catch (Exception $e) {
-            Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
+{
+    try {
+        $hoy = Carbon::now()->format('Y-m-d');
+        Log::info('Fecha de hoy ajustada: ' . $hoy);
+
+        $ausencias = Ausencia::whereDate('fecha', $hoy)
+                            ->with(['user.horarios.aula:id,descripcion', 'user.horarios.grupo:id,descripcion'])
+                            ->get();
+
+        $ausenciasConDetalles = [];
+
+        foreach ($ausencias as $ausencia) {
+            $horarios = $ausencia->user->horarios->unique('aula_id', 'grupo_id'); // Evitar duplicaciones basadas en aula y grupo
+            foreach ($horarios as $horario) {
+                $ausenciasConDetalles[] = [
+                    'id' => $ausencia->id,
+                    'user_id' => $ausencia->user_id,
+                    'user_name' => $ausencia->user->name,
+                    'fecha' => $ausencia->fecha,
+                    'hora' => $ausencia->hora,
+                    'aula_descripcion' => $horario->aula->descripcion,
+                    'grupo_descripcion' => $horario->grupo->descripcion,
+                ];
+            }
         }
+
+        Log::info('Ausencias con detalles: ' . json_encode($ausenciasConDetalles));
+
+        return response()->json($ausenciasConDetalles, 200);
+    } catch (Exception $e) {
+        Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
+        return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
     }
+}
 
     //Función para obtener las ausencias de un usuario elegido además de la clase y grupo 
     public function getAusenciasWithDetails($id): JsonResponse
