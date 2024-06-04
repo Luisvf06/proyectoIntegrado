@@ -180,13 +180,13 @@ export default {
       this.showModal = false;
     },
     async guardarNuevaAusencia() {
-    const { fecha, hora } = this.newAusencia;
+  const { fecha, hora } = this.newAusencia;
 
-    const date = new Date(fecha);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const formattedDate = `${month}/${day}/${year}`;
+  const date = new Date(fecha);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const formattedDate = `${month}/${day}/${year}`;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -198,7 +198,7 @@ export default {
       }
 
       const newAusencia = { 
-        user_id: this.userId, // Usar el user_id obtenido
+        user_id: this.userId,
         fecha: formattedDate, 
         hora: hora || null
       };
@@ -248,15 +248,15 @@ export default {
       }
     },
     async guardarAusencia(id) {
-    const row = document.querySelector(`button[data-id="${id}"]`).closest('tr');
-    const fechaInput = row.querySelector('input[type="date"]').value;
-    const horaInput = row.querySelector('input[type="time"]').value;
+      const row = document.querySelector(`button[data-id="${id}"]`).closest('tr');
+      const fechaInput = row.querySelector('input[type="date"]').value;
+      const horaInput = row.querySelector('input[type="time"]').value;
 
-    const date = new Date(fechaInput);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const formattedDate = `${month}/${day}/${year}`;
+      const date = new Date(fechaInput);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);

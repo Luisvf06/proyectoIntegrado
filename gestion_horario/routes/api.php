@@ -14,6 +14,7 @@ use App\Http\Controllers\FranjaController;
 use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\PeriodoController;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\PDFController;
 use App\Mail\UserMail;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -40,8 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
     Route::resource('/getUserHorario', HorarioController::class);
+    
 });
-
+Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
 Route::get('/send-test-email', function () {
     $user = \App\Models\User::first();
     Mail::to($user->email)->send(new UserMail([
