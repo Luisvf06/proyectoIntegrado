@@ -20,12 +20,33 @@
           </thead>
           <tbody>
             <tr v-for="ausencia in paginatedAusencias" :key="ausencia.id">
-              <td class="border px-4 py-2">{{ ausencia.fecha }}</td>
-              <td class="border px-4 py-2">{{ ausencia.hora }}</td>
-              <td class="border px-4 py-2 flex flex-col space-y-2">
-                <button @click="editAusencia(ausencia.id)" class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">Editar</button>
-                <button @click="confirmEliminarAusencia(ausencia.id)" class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Eliminar</button>
-              </td>
+              <td class="border px-4 py-2">
+  <div v-if="editMode[ausencia.id]">
+    <input type="date" v-model="editAusenciaData.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+  </div>
+  <div v-else>
+    {{ ausencia.fecha }}
+  </div>
+</td>
+<td class="border px-4 py-2">
+  <div v-if="editMode[ausencia.id]">
+    <input type="time" v-model="editAusenciaData.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+  </div>
+  <div v-else>
+    {{ ausencia.hora }}
+  </div>
+</td>
+<td class="border px-4 py-2 flex flex-col space-y-2">
+  <div v-if="editMode[ausencia.id]">
+    <button @click="guardarAusencia(ausencia.id)" class="guardar-btn text-green-600 hover:text-white border border-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Guardar</button>
+    <button @click="cancelEdit(ausencia.id)" class="cancelar-btn text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Cancelar</button>
+  </div>
+  <div v-else>
+    <button @click="editAusencia(ausencia)" class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">Editar</button>
+    <button @click="confirmEliminarAusencia(ausencia.id)" class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Eliminar</button>
+  </div>
+</td>
+
             </tr>
           </tbody>
         </table>
@@ -83,6 +104,10 @@ export default {
       showModal: false,
       showSuccessMessage: false,
       newAusencia: {
+        fecha: '',
+        hora: ''
+      },
+      editAusenciaData: {
         fecha: '',
         hora: ''
       },
@@ -180,13 +205,13 @@ export default {
       this.showModal = false;
     },
     async guardarNuevaAusencia() {
-  const { fecha, hora } = this.newAusencia;
+      const { fecha, hora } = this.newAusencia;
 
-  const date = new Date(fecha);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  const formattedDate = `${month}/${day}/${year}`;
+      const date = new Date(fecha);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const formattedDate = `${month}/${day}/${year}`;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -248,15 +273,13 @@ export default {
       }
     },
     async guardarAusencia(id) {
-      const row = document.querySelector(`button[data-id="${id}"]`).closest('tr');
-      const fechaInput = row.querySelector('input[type="date"]').value;
-      const horaInput = row.querySelector('input[type="time"]').value;
+      const { fecha, hora } = this.editAusenciaData;
 
-      const date = new Date(fechaInput);
+      const date = new Date(fecha);
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-      const formattedDate = `${day}/${month}/${year}`;
+      const formattedDate = `${month}/${day}/${year}`;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -277,12 +300,12 @@ export default {
         return;
       }
 
-      if (fechaInput && originalAusencia.fecha !== formattedDate) {
+      if (fecha && originalAusencia.fecha !== formattedDate) {
         updatedFields.fecha = formattedDate;
       }
 
-      if (horaInput && originalAusencia.hora !== horaInput) {
-        updatedFields.hora = horaInput;
+      if (hora && originalAusencia.hora !== hora) {
+        updatedFields.hora = hora;
       }
 
       if (Object.keys(updatedFields).length === 0) {
@@ -321,7 +344,7 @@ export default {
           const updatedAusencia = JSON.parse(responseText);
           const index = this.ausencias.findIndex(a => a.id === id);
           if (index !== -1) {
-            this.$set(this.ausencias, index, updatedAusencia);
+            this.ausencias.splice(index, 1, updatedAusencia); // Cambiado this.$set por this.ausencias.splice
           }
 
           this.editMode = { ...this.editMode, [id]: false };
@@ -336,6 +359,13 @@ export default {
         console.error('Error updating ausencia:', err);
         alert(`Error updating ausencia: ${err.message}`);
       }
+    },
+    editAusencia(ausencia) {
+      this.editAusenciaData = { fecha: ausencia.fecha, hora: ausencia.hora };
+      this.editMode = { ...this.editMode, [ausencia.id]: true };
+    },
+    cancelEdit(id) {
+      this.editMode = { ...this.editMode, [id]: false };
     },
     async eliminarAusencia(id) {
       if (!id) {
@@ -386,8 +416,12 @@ export default {
         alert(`Error eliminando la ausencia: ${error.message}`);
       });
     },
-    editAusencia(id) {
-      this.editMode = { ...this.editMode, [id]: true };
+    editAusencia(ausencia) {
+      this.editAusenciaData = { fecha: ausencia.fecha, hora: ausencia.hora };
+      this.editMode = { ...this.editMode, [ausencia.id]: true };
+    },
+    cancelEdit(id) {
+      this.editMode = { ...this.editMode, [id]: false };
     },
     confirmEliminarAusencia(id) {
       if (confirm('¿Está seguro de que quiere eliminar este registro?')) {
