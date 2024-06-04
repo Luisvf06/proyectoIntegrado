@@ -88,10 +88,6 @@ class AusenciaController extends Controller
             return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
         }
     }
-    
-    
-
-
     public function show($id): JsonResponse
     {
         $ausencia = Ausencia::find($id);
