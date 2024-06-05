@@ -23,24 +23,18 @@ class AusenciaController extends Controller
         return response()->json($ausencias, 200);
     }
 
-public function store(AusenciaRequest $request): JsonResponse
+    public function store(AusenciaRequest $request): JsonResponse
 {
     try {
-        // Log para verificar los datos validados
         Log::info('Datos validados recibidos en store:', $request->all());
 
         $data = $request->validated();
-
-        // Log para verificar los datos después de la validación
         Log::info('Datos después de la validación:', $data);
 
         if (isset($data['fechas'])) {
             foreach ($data['fechas'] as $fecha) {
-                // Log para verificar cada fecha antes de formatear
                 Log::info('Procesando fecha:', ['fecha' => $fecha]);
                 $formattedDate = Carbon::createFromFormat('m/d/Y', $fecha)->format('Y-m-d');
-
-                // Log para verificar el formato de la fecha después de formatear
                 Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
 
                 Ausencia::create([
@@ -49,7 +43,6 @@ public function store(AusenciaRequest $request): JsonResponse
                     'hora' => $data['hora'] ?? null,
                 ]);
 
-                // Log para confirmar que se ha creado una ausencia
                 Log::info('Ausencia creada:', [
                     'user_id' => $data['user_id'],
                     'fecha' => $formattedDate,
@@ -57,11 +50,8 @@ public function store(AusenciaRequest $request): JsonResponse
                 ]);
             }
         } else {
-            // Log para verificar la fecha antes de formatear
             Log::info('Procesando única fecha:', ['fecha' => $data['fecha']]);
             $formattedDate = Carbon::createFromFormat('m/d/Y', $data['fecha'])->format('Y-m-d');
-
-            // Log para verificar el formato de la fecha después de formatear
             Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
 
             Ausencia::create([
@@ -70,7 +60,6 @@ public function store(AusenciaRequest $request): JsonResponse
                 'hora' => $data['hora'] ?? null,
             ]);
 
-            // Log para confirmar que se ha creado una ausencia
             Log::info('Ausencia creada:', [
                 'user_id' => $data['user_id'],
                 'fecha' => $formattedDate,
@@ -80,7 +69,6 @@ public function store(AusenciaRequest $request): JsonResponse
 
         return response()->json(['message' => 'Ausencia creada correctamente'], 201);
     } catch (Exception $e) {
-        // Log para capturar el mensaje de error completo
         Log::error('Error al crear la ausencia: '.$e->getMessage(), [
             'exception' => $e,
             'data' => $request->all(),
@@ -88,6 +76,7 @@ public function store(AusenciaRequest $request): JsonResponse
         return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
     }
 }
+
     public function show($id): JsonResponse
     {
         $ausencia = Ausencia::find($id);

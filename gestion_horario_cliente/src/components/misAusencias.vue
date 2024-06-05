@@ -21,32 +21,35 @@
           <tbody>
             <tr v-for="ausencia in paginatedAusencias" :key="ausencia.id">
               <td class="border px-4 py-2">
-  <div v-if="editMode[ausencia.id]">
-    <input type="date" v-model="editAusenciaData.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-  </div>
-  <div v-else>
-    {{ ausencia.fecha }}
-  </div>
-</td>
-<td class="border px-4 py-2">
-  <div v-if="editMode[ausencia.id]">
-    <input type="time" v-model="editAusenciaData.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-  </div>
-  <div v-else>
-    {{ ausencia.hora }}
-  </div>
-</td>
-<td class="border px-4 py-2 flex flex-col space-y-2">
-  <div v-if="editMode[ausencia.id]">
-    <button @click="guardarAusencia(ausencia.id)" class="guardar-btn text-green-600 hover:text-white border border-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Guardar</button>
-    <button @click="cancelEdit(ausencia.id)" class="cancelar-btn text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Cancelar</button>
-  </div>
-  <div v-else>
-    <button @click="editAusencia(ausencia)" class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">Editar</button>
-    <button @click="confirmEliminarAusencia(ausencia.id)" class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Eliminar</button>
-  </div>
-</td>
-
+                <div v-if="editMode[ausencia.id]">
+                  <input type="date" v-model="editAusenciaData.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black">
+                </div>
+                <div v-else>
+                  {{ ausencia.fecha }}
+                </div>
+              </td>
+              <td class="border px-4 py-2">
+                <div v-if="editMode[ausencia.id]">
+                  <select v-model="editAusenciaData.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black">
+                    <option v-for="franja in franjas" :key="franja.id" :value="franja.hora_desde">
+                      {{ franja.hora_desde }}
+                    </option>
+                  </select>
+                </div>
+                <div v-else>
+                  {{ ausencia.hora }}
+                </div>
+              </td>
+              <td class="border px-4 py-2 flex flex-col space-y-2">
+                <div v-if="editMode[ausencia.id]">
+                  <button @click="guardarAusencia(ausencia.id)" class="guardar-btn text-green-600 hover:text-white border border-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800">Guardar</button>
+                  <button @click="cancelEdit(ausencia.id)" class="cancelar-btn text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Cancelar</button>
+                </div>
+                <div v-else>
+                  <button @click="editAusencia(ausencia)" class="editar-btn text-yellow-400 hover:text-white border border-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-yellow-300 dark:text-yellow-300 dark:hover:text-white dark:hover:bg-yellow-400 dark:focus:ring-yellow-900">Editar</button>
+                  <button @click="confirmEliminarAusencia(ausencia.id)" class="eliminar-btn text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900">Eliminar</button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -69,11 +72,15 @@
               <form @submit.prevent="guardarNuevaAusencia">
                 <div class="mt-4">
                   <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
-                  <input type="date" v-model="newAusencia.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <input type="date" v-model="newAusencia.fecha" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
                 <div class="mt-4">
                   <label for="hora" class="block text-sm font-medium text-gray-700">Hora</label>
-                  <input type="time" v-model="newAusencia.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <select v-model="newAusencia.hora" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option v-for="franja in franjas" :key="franja.id" :value="franja.hora_desde">
+                      {{ franja.hora_desde }}
+                    </option>
+                  </select>
                 </div>
                 <div class="mt-4 flex justify-end">
                   <button @click="closeModal" type="button" class="mr-2 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancelar</button>
@@ -99,6 +106,7 @@ export default {
   data() {
     return {
       ausencias: [],
+      franjas: [],
       editMode: {},
       newRow: null,
       showModal: false,
@@ -130,6 +138,7 @@ export default {
   async mounted() {
     await this.fetchUserId();  // Fetch user ID when the component mounts
     await this.fetchAusencias();
+    await this.fetchFranjas();
   },
   methods: {
     async fetchUserId() {
@@ -164,6 +173,29 @@ export default {
         container.innerHTML = `<div class="text-center py-4 text-red-500">Error: ${error.message}</div>`;
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchFranjas() {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No se encontró el token de autenticación');
+        }
+
+        const response = await fetch('http://127.0.0.1:8080/api/franjas', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch franjas: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+        this.franjas = data;
+      } catch (err) {
+        console.error('Error fetching franjas:', err);
       }
     },
     async getAusencias() {
@@ -205,73 +237,68 @@ export default {
       this.showModal = false;
     },
     async guardarNuevaAusencia() {
-      const { fecha, hora } = this.newAusencia;
+    const { fecha, hora } = this.newAusencia;
 
-      const date = new Date(fecha);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const formattedDate = `${month}/${day}/${year}`;
+    const date = new Date(fecha);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const formattedDate = `${month}/${day}/${year}`;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      if (date < today) {
+    if (date < today) {
         console.error('Fecha inválida: la fecha no puede ser anterior a la fecha actual');
         alert('Fecha inválida. La fecha no puede ser anterior a la fecha actual.');
         return;
-      }
+    }
 
-      const newAusencia = { 
+    const newAusencia = { 
         user_id: this.userId,
         fecha: formattedDate, 
         hora: hora || null
-      };
+    };
 
-      try {
+    try {
         const token = sessionStorage.getItem('authToken');
         if (!token) {
-          throw new Error('No se encontró el token de autenticación');
+            throw new Error('No se encontró el token de autenticación');
         }
 
         console.log('Enviando petición con token:', token);
         console.log('Datos enviados:', newAusencia);
 
         const response = await fetch('http://127.0.0.1:8080/api/ausencias', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(newAusencia)
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newAusencia)
         });
 
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const responseText = await response.text();
-          console.log('Server response:', responseText);
+        const responseText = await response.text();
 
-          if (!response.ok) {
-            throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}. Details: ${responseText}`);
-          }
-
-          const createdAusencia = JSON.parse(responseText);
-          this.ausencias.push(createdAusencia);
-          this.newAusencia = { fecha: '', hora: '' };
-          this.closeModal();
-          this.showSuccessMessage = true;
-          setTimeout(() => this.showSuccessMessage = false, 3000);
-          await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
-        } else {
-          const responseText = await response.text();
-          console.log('Unexpected server response:', responseText);
-          throw new Error(`Unexpected server response: ${responseText}`);
+        if (!response.ok) {
+            console.error('Respuesta del servidor:', responseText);
+            throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}.`);
         }
-      } catch (err) {
+
+        const createdAusencia = JSON.parse(responseText);
+        this.ausencias.push(createdAusencia);
+        this.newAusencia = { fecha: '', hora: '' };
+        this.closeModal();
+        this.showSuccessMessage = true;
+        setTimeout(() => this.showSuccessMessage = false, 3000);
+        await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
+    } catch (err) {
         console.error('Error creating ausencia:', err);
         alert(`Error creating ausencia: ${err.message}`);
-      }
-    },
+    }
+}
+
+,
     async guardarAusencia(id) {
       const { fecha, hora } = this.editAusenciaData;
 
