@@ -237,66 +237,67 @@ export default {
       this.showModal = false;
     },
     async guardarNuevaAusencia() {
-      const { fecha, hora } = this.newAusencia;
+  const { fecha, hora } = this.newAusencia;
 
-      const date = new Date(fecha);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const formattedDate = `${month}/${day}/${year}`;
+  const date = new Date(fecha);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const formattedDate = `${month}/${day}/${year}`;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      if (date < today) {
-        console.error('Fecha inválida: la fecha no puede ser anterior a la fecha actual');
-        alert('Fecha inválida. La fecha no puede ser anterior a la fecha actual.');
-        return;
-      }
+  if (date < today) {
+    console.error('Fecha inválida: la fecha no puede ser anterior a la fecha actual');
+    alert('Fecha inválida. La fecha no puede ser anterior a la fecha actual.');
+    return;
+  }
 
-      const newAusencia = { 
-        user_id: this.userId,
-        fecha: formattedDate, 
-        hora: hora || null
-      };
+  const newAusencia = { 
+    user_id: this.userId,
+    fecha: formattedDate, 
+    hora: hora || null
+  };
 
-      try {
-        const token = sessionStorage.getItem('authToken');
-        if (!token) {
-          throw new Error('No se encontró el token de autenticación');
-        }
+  try {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('No se encontró el token de autenticación');
+    }
 
-        console.log('Enviando petición con token:', token);
-        console.log('Datos enviados:', newAusencia);
+    console.log('Enviando petición con token:', token);
+    console.log('Datos enviados:', newAusencia);
 
-        const response = await fetch('http://127.0.0.1:8080/api/ausencias', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(newAusencia)
-        });
+    const response = await fetch('http://127.0.0.1:8080/api/ausencias', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newAusencia)
+    });
 
-        const responseText = await response.text();
+    const responseText = await response.text();
+    console.log('Respuesta del servidor:', responseText);
 
-        if (!response.ok) {
-          console.error('Respuesta del servidor:', responseText);
-          throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}.`);
-        }
+    if (!response.ok) {
+      throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}.`);
+    }
 
-        const createdAusencia = JSON.parse(responseText);
-        this.ausencias.push(createdAusencia);
-        this.newAusencia = { fecha: '', hora: '' };
-        this.closeModal();
-        this.showSuccessMessage = true;
-        setTimeout(() => this.showSuccessMessage = false, 3000);
-        await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
-      } catch (err) {
-        console.error('Error creating ausencia:', err);
-        alert(`Error creating ausencia: ${err.message}`);
-      }
-    },
+    const createdAusencia = JSON.parse(responseText); // Aquí puede lanzar un error si no es JSON válido
+    this.ausencias.push(createdAusencia);
+    this.newAusencia = { fecha: '', hora: '' };
+    this.closeModal();
+    this.showSuccessMessage = true;
+    setTimeout(() => this.showSuccessMessage = false, 3000);
+    await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
+  } catch (err) {
+    console.error('Error creating ausencia:', err);
+    alert(`Error creating ausencia: ${err.message}`);
+  }
+}
+,
     async guardarAusencia(id) {
       const { fecha, hora } = this.editAusenciaData;
 

@@ -60,7 +60,8 @@ class HorarioController extends Controller
 
             try {
                 $periodo = Periodo::where('periodo_cod', $horario[7])->firstOrFail();
-            } catch (\Exception $e) {
+            } 
+            catch (\Exception $e) {
                 Log::error('Error al buscar periodo: ' . $e->getMessage() . ' - Código: ' . $horario[7]);
                 continue;
             }
@@ -88,41 +89,78 @@ class HorarioController extends Controller
         return response()->json(Horario::all());
     }
     public function getUserHorario()
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    if (!$user) {
-        return response()->json(['error' => 'User not authenticated'], 401);
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
+            ->where('user_id', $user->id)
+            ->orderBy('franja_id')
+            ->get();
+
+        // Obtener franjas filtradas por user_id
+        $franjas = Franja::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+
+        // Obtener asignaturas filtradas por user_id
+        $asignaturas = Asignatura::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+
+        // Obtener aulas filtradas por user_id
+        $aulas = Aula::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+
+        return response()->json([
+            'user' => $user,
+            'horarios' => $horarios,
+            'franjas' => $franjas,
+            'asignaturas' => $asignaturas,
+            'aulas' => $aulas,
+        ]);
     }
 
-    $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
-        ->where('user_id', $user->id)
-        ->orderBy('franja_id')
-        ->get();
+    public function getUserHorarioById($id)
+    {
+        $user = User::find($id);
 
-    // Obtener franjas filtradas por user_id
-    $franjas = Franja::whereHas('horarios', function($query) use ($user) {
-        $query->where('user_id', $user->id);
-    })->get();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
 
-    // Obtener asignaturas filtradas por user_id
-    $asignaturas = Asignatura::whereHas('horarios', function($query) use ($user) {
-        $query->where('user_id', $user->id);
-    })->get();
+        $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
+            ->where('user_id', $user->id)
+            ->orderBy('franja_id')
+            ->get();
 
-    // Obtener aulas filtradas por user_id
-    $aulas = Aula::whereHas('horarios', function($query) use ($user) {
-        $query->where('user_id', $user->id);
-    })->get();
+        // Obtener franjas filtradas por user_id
+        $franjas = Franja::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
 
-    return response()->json([
-        'user' => $user,
-        'horarios' => $horarios,
-        'franjas' => $franjas,
-        'asignaturas' => $asignaturas,
-        'aulas' => $aulas,
-    ]);
-}
+        // Obtener asignaturas filtradas por user_id
+        $asignaturas = Asignatura::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+
+        // Obtener aulas filtradas por user_id
+        $aulas = Aula::whereHas('horarios', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+
+        return response()->json([
+            'user' => $user,
+            'horarios' => $horarios,
+            'franjas' => $franjas,
+            'asignaturas' => $asignaturas,
+            'aulas' => $aulas,
+        ]);
+    }
 }
 
 

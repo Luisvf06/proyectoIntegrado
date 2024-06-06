@@ -6,6 +6,27 @@
       "name": "Development server",
       "request": "launch",
       "type": "node-terminal"
+    },
+    {
+      "type": "firefox",
+      "request": "launch",
+      "name": "Vue.js: Firefox",
+      "url": "http://localhost:4321",
+      "webRoot": "${workspaceFolder}/src",
+      "pathMappings": [
+        {
+          "url": "http://localhost:4321/src",
+          "path": "${workspaceFolder}/src"
+        },
+        {
+          "url": "webpack:///src/*",
+          "path": "${webRoot}/*"
+        }
+      ],
+      "reAttach": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     }
   ]
 }

@@ -185,7 +185,7 @@ Log::info('Datos validados recibidos en store:', $request->all());
             $ausenciasConDetalles = [];
 
             foreach ($ausencias as $ausencia) {
-                $horarios = $ausencia->user->horarios->unique('aula_id', 'grupo_id'); // Evitar duplicaciones basadas en aula y grupo
+                $horarios = $ausencia->user->horarios->unique('aula_id', 'grupo_id'); // Evitar duplicaciones 
                 foreach ($horarios as $horario) {
                     $ausenciasConDetalles[] = [
                         'id' => $ausencia->id,

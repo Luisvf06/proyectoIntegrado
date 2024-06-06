@@ -30,6 +30,14 @@ let error = null;
       }
 
       try {
+
+        const data = await fetch('http://127.0.0.1:8080/api/horario/user/${user.id}', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
         const dataUser = await fetch('http://127.0.0.1:8080/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -75,7 +83,7 @@ let error = null;
         if (!dataFranjas.ok) {
           throw new Error('Failed to fetch franjas data');
         }
-
+        const dataFull = await data.json();
         const userData = await dataUser.json();
         const Horariodata = await dataHorario.json();
         const Franjasdata = await dataFranjas.json();

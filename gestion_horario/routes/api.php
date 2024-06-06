@@ -41,6 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
     Route::resource('/getUserHorario', HorarioController::class);
+    //TODO
+    Route::get('/horario/user/{id}', [HorarioController::class, 'getUserHorario']);
+    Route::get('/ausencias/mes/{mes}/dia/{dia}', [AusenciaController::class, 'getAusenciasMesDia']);
+
     
 });
 Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
