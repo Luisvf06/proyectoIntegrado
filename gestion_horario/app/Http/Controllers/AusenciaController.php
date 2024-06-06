@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\Horario;
 use App\Models\Grupo;
 use App\Models\Aula;
+
 class AusenciaController extends Controller
 {
     public function index(): JsonResponse
@@ -24,17 +25,34 @@ class AusenciaController extends Controller
     }
 
     public function store(AusenciaRequest $request): JsonResponse
-{
-    try {
-        Log::info('Datos validados recibidos en store:', $request->all());
+    {
+        try {
+            Log::info('Datos validados recibidos en store:', $request->all());
+            
+            $data = $request->validated();
+            Log::info('Datos después de la validación:', $data);
+Log::info('Datos validados recibidos en store:', $request->all());
+            if (isset($data['fechas'])) {
+                foreach ($data['fechas'] as $fecha) {
+                    Log::info('Procesando fecha:', ['fecha' => $fecha]);
+                    $formattedDate = Carbon::createFromFormat('m/d/Y', $fecha)->format('Y-m-d');
+                    Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
 
-        $data = $request->validated();
-        Log::info('Datos después de la validación:', $data);
+                    Ausencia::create([
+                        'user_id' => $data['user_id'],
+                        'fecha' => $formattedDate,
+                        'hora' => $data['hora'] ?? null,
+                    ]);
 
-        if (isset($data['fechas'])) {
-            foreach ($data['fechas'] as $fecha) {
-                Log::info('Procesando fecha:', ['fecha' => $fecha]);
-                $formattedDate = Carbon::createFromFormat('m/d/Y', $fecha)->format('Y-m-d');
+                    Log::info('Ausencia creada:', [
+                        'user_id' => $data['user_id'],
+                        'fecha' => $formattedDate,
+                        'hora' => $data['hora'] ?? null,
+                    ]);
+                }
+            } else {
+                Log::info('Procesando única fecha:', ['fecha' => $data['fecha']]);
+                $formattedDate = Carbon::createFromFormat('m/d/Y', $data['fecha'])->format('Y-m-d');
                 Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
 
                 Ausencia::create([
@@ -49,33 +67,16 @@ class AusenciaController extends Controller
                     'hora' => $data['hora'] ?? null,
                 ]);
             }
-        } else {
-            Log::info('Procesando única fecha:', ['fecha' => $data['fecha']]);
-            $formattedDate = Carbon::createFromFormat('m/d/Y', $data['fecha'])->format('Y-m-d');
-            Log::info('Fecha formateada:', ['fecha' => $formattedDate]);
 
-            Ausencia::create([
-                'user_id' => $data['user_id'],
-                'fecha' => $formattedDate,
-                'hora' => $data['hora'] ?? null,
+            return response()->json(['message' => 'Ausencia creada correctamente'], 201);
+        } catch (Exception $e) {
+            Log::error('Error al crear la ausencia: '.$e->getMessage(), [
+                'exception' => $e,
+                'data' => $request->all(),
             ]);
-
-            Log::info('Ausencia creada:', [
-                'user_id' => $data['user_id'],
-                'fecha' => $formattedDate,
-                'hora' => $data['hora'] ?? null,
-            ]);
+            return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Ausencia creada correctamente'], 201);
-    } catch (Exception $e) {
-        Log::error('Error al crear la ausencia: '.$e->getMessage(), [
-            'exception' => $e,
-            'data' => $request->all(),
-        ]);
-        return response()->json(['error' => 'Error al crear la ausencia: ' . $e->getMessage()], 500);
     }
-}
 
     public function show($id): JsonResponse
     {
@@ -89,47 +90,48 @@ class AusenciaController extends Controller
     }
 
     public function update(Request $request, $id): JsonResponse
-{
-    Log::info('Iniciando actualización de ausencia con ID: ' . $id);
-    $ausencia = Ausencia::find($id);
+    {
+        Log::info('Iniciando actualización de ausencia con ID: ' . $id);
+        $ausencia = Ausencia::find($id);
 
-    if (!$ausencia) {
-        Log::error('Ausencia no encontrada con ID: ' . $id);
-        return response()->json(['error' => 'Ausencia no encontrada'], 404);
-    }
-
-    try {
-        if ($request->has('fecha')) {
-            // Convertir la fecha al formato correcto
-            $fecha = Carbon::createFromFormat('m/d/Y', $request->fecha);
-            if (!$fecha) {
-                Log::error('Formato de fecha inválido: ' . $request->fecha);
-                return response()->json(['error' => 'Formato de fecha inválido'], 400);
-            }
-
-            // Verificar que la fecha no sea anterior a la fecha actual
-            $fechaActual = Carbon::now()->startOfDay();
-            if ($fecha->lessThan($fechaActual)) {
-                Log::error('La fecha proporcionada es anterior a la fecha actual: ' . $request->fecha);
-                return response()->json(['error' => 'La fecha no puede ser anterior a la fecha actual'], 400);
-            }
-
-            $ausencia->fecha = $fecha->format('Y-m-d');
+        if (!$ausencia) {
+            Log::error('Ausencia no encontrada con ID: ' . $id);
+            return response()->json(['error' => 'Ausencia no encontrada'], 404);
         }
 
-        if ($request->has('hora')) {
-            $ausencia->hora = $request->hora;
+        try {
+            if ($request->has('fecha')) {
+                // Convertir la fecha al formato correcto
+                $fecha = Carbon::createFromFormat('m/d/Y', $request->fecha);
+                if (!$fecha) {
+                    Log::error('Formato de fecha inválido: ' . $request->fecha);
+                    return response()->json(['error' => 'Formato de fecha inválido'], 400);
+                }
+
+                // Verificar que la fecha no sea anterior a la fecha actual
+                $fechaActual = Carbon::now()->startOfDay();
+                if ($fecha->lessThan($fechaActual)) {
+                    Log::error('La fecha proporcionada es anterior a la fecha actual: ' . $request->fecha);
+                    return response()->json(['error' => 'La fecha no puede ser anterior a la fecha actual'], 400);
+                }
+
+                $ausencia->fecha = $fecha->format('Y-m-d');
+            }
+
+            if ($request->has('hora')) {
+                $ausencia->hora = $request->hora;
+            }
+
+            $ausencia->save();
+
+            Log::info('Ausencia actualizada correctamente');
+            return response()->json(['message' => 'Ausencia actualizada correctamente', 'data' => $ausencia], 200);
+        } catch (Exception $e) {
+            Log::error('Error al actualizar la ausencia: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al actualizar la ausencia: ' . $e->getMessage()], 500);
         }
-
-        $ausencia->save();
-
-        Log::info('Ausencia actualizada correctamente');
-        return response()->json(['message' => 'Ausencia actualizada correctamente', 'data' => $ausencia], 200);
-    } catch (Exception $e) {
-        Log::error('Error al actualizar la ausencia: ' . $e->getMessage());
-        return response()->json(['error' => 'Error al actualizar la ausencia: ' . $e->getMessage()], 500);
     }
-}
+
     public function destroy($id): JsonResponse
     {
         $ausencia = Ausencia::find($id);
@@ -171,40 +173,40 @@ class AusenciaController extends Controller
     }
 
     public function getAusenciasHoy(): JsonResponse
-{
-    try {
-        $hoy = Carbon::now()->format('Y-m-d');
-        Log::info('Fecha de hoy ajustada: ' . $hoy);
+    {
+        try {
+            $hoy = Carbon::now()->format('Y-m-d');
+            Log::info('Fecha de hoy ajustada: ' . $hoy);
 
-        $ausencias = Ausencia::whereDate('fecha', $hoy)
-                            ->with(['user.horarios.aula:id,descripcion', 'user.horarios.grupo:id,descripcion'])
-                            ->get();
+            $ausencias = Ausencia::whereDate('fecha', $hoy)
+                                ->with(['user.horarios.aula:id,descripcion', 'user.horarios.grupo:id,descripcion'])
+                                ->get();
 
-        $ausenciasConDetalles = [];
+            $ausenciasConDetalles = [];
 
-        foreach ($ausencias as $ausencia) {
-            $horarios = $ausencia->user->horarios->unique('aula_id', 'grupo_id'); // Evitar duplicaciones basadas en aula y grupo
-            foreach ($horarios as $horario) {
-                $ausenciasConDetalles[] = [
-                    'id' => $ausencia->id,
-                    'user_id' => $ausencia->user_id,
-                    'user_name' => $ausencia->user->name,
-                    'fecha' => $ausencia->fecha,
-                    'hora' => $ausencia->hora,
-                    'aula_descripcion' => $horario->aula->descripcion,
-                    'grupo_descripcion' => $horario->grupo->descripcion,
-                ];
+            foreach ($ausencias as $ausencia) {
+                $horarios = $ausencia->user->horarios->unique('aula_id', 'grupo_id'); // Evitar duplicaciones basadas en aula y grupo
+                foreach ($horarios as $horario) {
+                    $ausenciasConDetalles[] = [
+                        'id' => $ausencia->id,
+                        'user_id' => $ausencia->user_id,
+                        'user_name' => $ausencia->user->name,
+                        'fecha' => $ausencia->fecha,
+                        'hora' => $ausencia->hora,
+                        'aula_descripcion' => $horario->aula->descripcion,
+                        'grupo_descripcion' => $horario->grupo->descripcion,
+                    ];
+                }
             }
+
+            Log::info('Ausencias con detalles: ' . json_encode($ausenciasConDetalles));
+
+            return response()->json($ausenciasConDetalles, 200);
+        } catch (Exception $e) {
+            Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
         }
-
-        Log::info('Ausencias con detalles: ' . json_encode($ausenciasConDetalles));
-
-        return response()->json($ausenciasConDetalles, 200);
-    } catch (Exception $e) {
-        Log::error('Error al obtener las ausencias de hoy: ' . $e->getMessage());
-        return response()->json(['error' => 'Error al obtener las ausencias de hoy: ' . $e->getMessage()], 500);
     }
-}
 
     //Función para obtener las ausencias de un usuario elegido además de la clase y grupo 
     public function getAusenciasWithDetails($id): JsonResponse
