@@ -1,5 +1,4 @@
 ---
-
 import Layout from '../layouts/Layout.astro';
 
 let user = { name: 'Cargando...', email: '...', id: null, professor_cod: '...' };
@@ -7,12 +6,9 @@ let error = null;
 ---
 
 <Layout title="Inicio">
-
-  
   <div id="error" class="error-message text-white">{error}</div>
   <div class="user-info text-white">
     <h1 id="username">{user.name}</h1>
-
     <p><strong>Email:</strong> <span id="user-email">{user.email}</span></p>
     <p><strong>ID:</strong> <span id="user-id">{user.id}</span></p>
     <p><strong>Professor Code:</strong> <span id="user-professor-cod">{user.professor_cod}</span></p>
@@ -20,139 +16,102 @@ let error = null;
   
   <div id="schedule-container" class="container mx-auto mt-10 text-white">
   </div>
-  
-  <script type="module">
-    async function fetchUserData() {
-      const token = sessionStorage.getItem('authToken');
-      if (!token) {
-        document.getElementById('error').textContent = 'User is not authenticated';
-        return;
-      }
-
-      try {
-
-        const data = await fetch('http://127.0.0.1:8080/api/horario/user/${user.id}', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        
-        const dataUser = await fetch('http://127.0.0.1:8080/api/user', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        const dataHorario = await fetch('http://127.0.0.1:8080/api/horarios', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        const dataFranjas = await fetch('http://127.0.0.1:8080/api/franjas', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        const dataAsignaturas = await fetch('http://127.0.0.1:8080/api/asignaturas', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        const dataAulas = await fetch('http://127.0.0.1:8080/api/aulas', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        const dataGrupos = await fetch('http://127.0.0.1:8080/api/grupos', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        if (!dataUser.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-        if (!dataHorario.ok) {
-          throw new Error('Failed to fetch horario data');
-        }
-        if (!dataFranjas.ok) {
-          throw new Error('Failed to fetch franjas data');
-        }
-        const dataFull = await data.json();
-        const userData = await dataUser.json();
-        const Horariodata = await dataHorario.json();
-        const Franjasdata = await dataFranjas.json();
-        updateDOM(userData, Franjasdata, Horariodata, null);
-      } catch (err) {
-        updateDOM(null, null, null, err.message);
-      }
-    }
-
-    function updateDOM(user, franjas, horarios, error) {
-      if (error) {
-        document.getElementById('error').textContent = error;
-      } else {
-        document.getElementById('username').textContent = user.name;
-        document.getElementById('user-email').textContent = user.email;
-        document.getElementById('user-id').textContent = user.id;
-        document.getElementById('user-professor-cod').textContent = user.professor_cod;
-
-        const scheduleContainer = document.getElementById('schedule-container');
-        const table = document.createElement('table');
-        table.className = 'min-w-full border-collapse border border-gray-200 text-white';
-
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-        //Creo la primera fila de la tabla
-        headers.forEach(headerText => {
-          const th = document.createElement('th');
-          th.className = 'border border-gray-200 px-4 py-2';
-          th.textContent = headerText;
-          headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        
-        franjas.forEach(franja => {
-          const row = document.createElement('tr');
-          const asignaturaCell= document.createElement('td');
-          const horaCell = document.createElement('td');
-          horaCell.className = 'border border-gray-200 px-4 py-2';
-          asignaturaCell.className = 'border border-gray-200 px-4 py-2';
-          horaCell.textContent = franja.hora_desde;
-          asignaturaCell.textContent = franja.hora_hasta;
-          row.appendChild(horaCell);
-
-
-          for (let i = 0; i < 5; i++) {
-            const dayCell = document.createElement('td');
-            dayCell.className = 'border border-gray-200 px-4 py-2';
-
-            // Busca si hay un horario que coincida con la franja y el día
-            const horario = horarios.find(h => h.franja_id === franja.id && parseInt(h.dia) === i + 1);
-            if (horario) {
-              dayCell.textContent = `${horario.aula.aula_cod} - ${horario.asignatura.descripcion}`;
-            }
-
-            row.appendChild(dayCell);
-          }
-
-          tbody.appendChild(row);
-        });
-
-        table.appendChild(tbody);
-        scheduleContainer.appendChild(table);
-      }
-    }
-
-    fetchUserData();
-  </script>
 </Layout>
+
+<script type="module">
+  async function fetchUserData() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+      document.getElementById('error').textContent = 'User is not authenticated';
+      return;
+    }
+
+    try {
+      const response = await fetch('http://127.0.0.1:8080/api/horario/user/id', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const data = await response.json();
+      updateDOM(data);
+    } catch (err) {
+      document.getElementById('error').textContent = err.message;
+    }
+  }
+
+  function updateDOM(data) {
+    const user = data.user;
+    const horarios = data.horarios;
+
+    document.getElementById('username').textContent = user.name;
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('user-id').textContent = user.id;
+    document.getElementById('user-professor-cod').textContent = user.professor_cod;
+
+    const scheduleContainer = document.getElementById('schedule-container');
+    const table = document.createElement('table');
+    table.className = 'min-w-full border-collapse border border-gray-200 text-white';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.className = 'border border-gray-200 px-4 py-2';
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    // Agrupa horarios por franja
+    const franjas = horarios.reduce((acc, horario) => {
+      const horaDesde = horario.franja.hora_desde;
+      const horaHasta = horario.franja.hora_hasta;
+      const hora = `${horaDesde} - ${horaHasta}`;
+      if (!acc[hora]) {
+        acc[hora] = {};
+      }
+      acc[hora][horario.dia] = `${horario.aula.descripcion} - ${horario.grupo.descripcion}`;
+      return acc;
+    }, {});
+
+    // Crea filas por cada franja
+    Object.keys(franjas).forEach(hora => {
+      const row = document.createElement('tr');
+
+      const horaCell = document.createElement('td');
+      horaCell.className = 'border border-gray-200 px-4 py-2 text-center';
+      const [horaDesde, horaHasta] = hora.split(' - ');
+      horaCell.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;">
+                              <span>${horaDesde}</span>
+                              <span>-</span>
+                              <span>${horaHasta}</span>
+                            </div>`;
+      row.appendChild(horaCell);
+
+      const days = ['L', 'M', 'X', 'J', 'V'];
+      days.forEach(day => {
+        const dayCell = document.createElement('td');
+        dayCell.className = 'border border-gray-200 px-4 py-2';
+        dayCell.textContent = franjas[hora][day] || '';
+        row.appendChild(dayCell);
+      });
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    scheduleContainer.appendChild(table);
+  }
+
+  fetchUserData();
+</script>
