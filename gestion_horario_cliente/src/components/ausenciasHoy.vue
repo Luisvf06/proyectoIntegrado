@@ -1,5 +1,10 @@
 <template>
   <div class="container mx-auto">
+    <div class="mt-4 flex justify-center">
+      <input type="date" v-model="selectedDate" class="px-4 py-2 border rounded-md text-black" />
+      <button @click="fetchFaltas" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-md">Buscar día</button>
+      <button @click="generatePDF" class="ml-4 px-4 py-2 bg-green-500 text-white rounded-md">Generar PDF</button>
+    </div>
     <div id="faltas-container" class="mt-4 flex justify-center">
       <div class="text-center py-4 text-white">Cargando faltas...</div>
     </div>
@@ -12,21 +17,32 @@ export default {
   data() {
     return {
       faltas: [],
-      diaSemana: ''
+      diaSemana: '',
+      selectedDate: ''
     };
   },
   async mounted() {
+    this.setDefaultDate();
     this.setDiaSemana();
     await this.fetchFaltas();
   },
   methods: {
+    setDefaultDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      this.selectedDate = `${year}-${month}-${day}`;
+    },
     setDiaSemana() {
       const days = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-      const today = new Date();
+      const today = new Date(this.selectedDate);
       this.diaSemana = days[today.getDay()];
     },
     async fetchFaltas() {
+      this.setDiaSemana();
       const container = document.getElementById('faltas-container');
+      container.innerHTML = '<div class="text-center py-4 text-white">Cargando faltas...</div>';
       try {
         const faltas = await this.getFaltas();
         console.log('Datos almacenados en el estado:', faltas);
@@ -47,9 +63,9 @@ export default {
           throw new Error('No se encontró el token de autenticación');
         }
 
-        const today = new Date();
-        const mes = today.getMonth() + 1; // Obtener mes actual
-        const dia = today.getDate(); // Obtener día actual
+        const selectedDate = new Date(this.selectedDate);
+        const mes = selectedDate.getMonth() + 1; // Obtener mes seleccionado
+        const dia = selectedDate.getDate(); // Obtener día seleccionado
 
         const response = await fetch(`http://127.0.0.1:8080/api/ausencias/mes/${mes}/dia/${dia}`, {
           headers: {
@@ -90,19 +106,28 @@ export default {
       table.appendChild(thead);
 
       const tbody = document.createElement('tbody');
+      const uniqueEntries = new Set();
       this.faltas.forEach(falta => {
         const horariosDelDia = falta.user.horarios.filter(horario => horario.dia === this.diaSemana);
         console.log('Horarios del día:', horariosDelDia);
         if (horariosDelDia.length > 0) {
           horariosDelDia.forEach(horario => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = this.getReadOnlyRow(falta, horario);
-            tbody.appendChild(tr);
+            const uniqueKey = `${falta.user.name}-${falta.hora}`;
+            if (!uniqueEntries.has(uniqueKey)) {
+              uniqueEntries.add(uniqueKey);
+              const tr = document.createElement('tr');
+              tr.innerHTML = this.getReadOnlyRow(falta, horario);
+              tbody.appendChild(tr);
+            }
           });
         } else {
-          const tr = document.createElement('tr');
-          tr.innerHTML = this.getNoDataRow(falta);
-          tbody.appendChild(tr);
+          const uniqueKey = `${falta.user.name}-${falta.hora}`;
+          if (!uniqueEntries.has(uniqueKey)) {
+            uniqueEntries.add(uniqueKey);
+            const tr = document.createElement('tr');
+            tr.innerHTML = this.getNoDataRow(falta);
+            tbody.appendChild(tr);
+          }
         }
       });
       table.appendChild(tbody);
@@ -145,6 +170,10 @@ export default {
         <td class="border px-4 py-2 text-black">${falta.id}</td>
         <td class="border px-4 py-2 text-black" colspan="2">No hay datos</td>
       `;
+    },
+    generatePDF() {
+      const url = `http://127.0.0.1:8080/api/generate-pdf?date=${this.selectedDate}`;
+      window.open(url, '_blank');
     }
   }
 }

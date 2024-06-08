@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\Horario;
 use App\Models\Grupo;
 use App\Models\Aula;
+use PDF;
 
 class AusenciaController extends Controller
 {
@@ -268,7 +269,7 @@ Log::info('Datos validados recibidos en store:', $request->all());
         }
     }
 
-    public function getAusenciasMesDia($mes, $dia): JsonResponse
+    public function getAusenciasMesDia(Request $request, $mes, $dia): JsonResponse
     {
         try {
             // Obtener ausencias filtradas por mes y día, y cargar las relaciones necesarias
@@ -286,7 +287,29 @@ Log::info('Datos validados recibidos en store:', $request->all());
             $ausencias = $ausencias->sortBy(function($ausencia) {
                 return $ausencia->user->horarios->first()->franja->id;
             });
-    
+
+            // Verificar si el cliente solicita el PDF
+            if ($request->has('pdf') && $request->get('pdf') == 'true') {
+                $data = [
+                    'title' => 'Lista de ausencias del día ' . $dia . '/' . $mes,
+                    'date' => Carbon::createFromDate(null, $mes, $dia)->format('d-m-Y'),
+                    'ausencias' => []
+                ];
+
+                foreach ($ausencias as $ausencia) {
+                    $horario = $ausencia->user->horarios->first();
+                    $data['ausencias'][] = [
+                        'ausencia' => $ausencia,
+                        'horario' => $horario,
+                        'aula' => $horario ? $horario->aula : null,
+                        'grupo' => $horario ? $horario->grupo : null,
+                    ];
+                }
+
+                $pdf = PDF::loadView('pdf.myPDF', $data);
+                return $pdf->download('ausencias_' . $dia . '_' . $mes . '.pdf');
+            }
+
             return response()->json([
                 'ausencias' => $ausencias,
             ]);
