@@ -2,7 +2,6 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
+use Illuminate\Support\Facades\Schedule;
+use App\Console\Commands\EnviarAusenciasDiarias;
+//Archivo para automatizar tareas de acuardo a un horario
