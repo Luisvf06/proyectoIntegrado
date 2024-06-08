@@ -44,10 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     //TODO
     Route::get('/horario/user/{id}', [HorarioController::class, 'getUserHorario']);
     Route::get('/ausencias/mes/{mes}/dia/{dia}', [AusenciaController::class, 'getAusenciasMesDia']);
-
+    Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
     
 });
-Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
+
 Route::get('/send-test-email', function () {
     $user = \App\Models\User::first();
     Mail::to($user->email)->send(new UserMail([

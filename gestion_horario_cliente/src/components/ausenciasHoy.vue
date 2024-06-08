@@ -18,7 +18,8 @@ export default {
     return {
       faltas: [],
       diaSemana: '',
-      selectedDate: ''
+      selectedDate: '',
+      email: '' // No es necesario usar este campo
     };
   },
   async mounted() {
@@ -172,8 +173,30 @@ export default {
       `;
     },
     generatePDF() {
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        alert('No se encontró el token de autenticación');
+        return;
+      }
+
       const url = `http://127.0.0.1:8080/api/generate-pdf?date=${this.selectedDate}`;
-      window.open(url, '_blank');
+      fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error generating PDF:', error);
+      });
     }
   }
 }

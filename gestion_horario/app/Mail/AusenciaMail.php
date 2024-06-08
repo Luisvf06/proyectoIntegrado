@@ -3,22 +3,26 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Attachment;
 
 class AusenciaMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $data;
+    public $pdfPath;
+
     /**
      * Create a new message instance.
      */
-    public function __construct(public array $data)
+    public function __construct($data, $pdfPath)
     {
-        //
+        $this->data = $data;
+        $this->pdfPath = $pdfPath;
     }
 
     /**
@@ -48,10 +52,10 @@ class AusenciaMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
-
-        public function build() {
-            return $this->view('emails.ausencia-mail'); 
-          }
+        return [
+            Attachment::fromPath($this->pdfPath)
+                ->as('ausencias_hoy.pdf') // Asigna un nombre al archivo adjunto
+                ->withMime('application/pdf'), // Define el tipo MIME
+        ];
     }
 }
