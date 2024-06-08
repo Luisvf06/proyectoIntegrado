@@ -79,6 +79,7 @@ export default {
       thead.className = 'bg-gray-800 text-white';
       thead.innerHTML = `
         <tr>
+          <th class="w-1/6 px-4 py-2">Nombre</th>
           <th class="w-1/6 px-4 py-2">Fecha</th>
           <th class="w-1/6 px-4 py-2">Hora</th>
           <th class="w-1/6 px-4 py-2">Id ausencia</th>
@@ -92,11 +93,17 @@ export default {
       this.faltas.forEach(falta => {
         const horariosDelDia = falta.user.horarios.filter(horario => horario.dia === this.diaSemana);
         console.log('Horarios del día:', horariosDelDia);
-        horariosDelDia.forEach(horario => {
+        if (horariosDelDia.length > 0) {
+          horariosDelDia.forEach(horario => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = this.getReadOnlyRow(falta, horario);
+            tbody.appendChild(tr);
+          });
+        } else {
           const tr = document.createElement('tr');
-          tr.innerHTML = this.getReadOnlyRow(falta, horario);
+          tr.innerHTML = this.getNoDataRow(falta);
           tbody.appendChild(tr);
-        });
+        }
       });
       table.appendChild(tbody);
 
@@ -114,11 +121,29 @@ export default {
       const hora = falta.hora ? falta.hora : 'todo el día';
 
       return `
+        <td class="border px-4 py-2 text-black">${falta.user.name}</td>
         <td class="border px-4 py-2 text-black">${fechaFormateada}</td>
         <td class="border px-4 py-2 text-black">${hora}</td>
         <td class="border px-4 py-2 text-black">${falta.id}</td>
         <td class="border px-4 py-2 text-black">${horario.aula.descripcion}</td>
         <td class="border px-4 py-2 text-black">${horario.grupo.descripcion}</td>
+      `;
+    },
+    getNoDataRow(falta) {
+      const fechaFormateada = new Date(falta.fecha).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+
+      const hora = falta.hora ? falta.hora : 'todo el día';
+
+      return `
+        <td class="border px-4 py-2 text-black">${falta.user.name}</td>
+        <td class="border px-4 py-2 text-black">${fechaFormateada}</td>
+        <td class="border px-4 py-2 text-black">${hora}</td>
+        <td class="border px-4 py-2 text-black">${falta.id}</td>
+        <td class="border px-4 py-2 text-black" colspan="2">No hay datos</td>
       `;
     }
   }
