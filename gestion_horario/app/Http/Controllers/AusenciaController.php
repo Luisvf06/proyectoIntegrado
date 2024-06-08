@@ -270,26 +270,29 @@ Log::info('Datos validados recibidos en store:', $request->all());
 
     public function getAusenciasMesDia($mes, $dia): JsonResponse
     {
-        try{
-                    // Obtener horarios filtrados por mes y día
-        $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
-        ->whereMonth('fecha', $mes)
-        ->whereDay('fecha', $dia)
-        ->orderBy('franja_id')
-        ->get();
-
-        // Filtrar asignaturas por los horarios obtenidos
-        $asignaturas = Asignatura::whereHas('horarios', function($query) use ($mes, $dia) {
-            $query->whereMonth('fecha', $mes)
-                ->whereDay('fecha', $dia);
-        })->get();
-
-        return response()->json([
-            'horarios' => $horarios,
-            'asignaturas' => $asignaturas,
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Internal Server Error'], 500);
-            }
+        try {
+            // Obtener ausencias filtradas por mes y día, y cargar las relaciones necesarias
+            $ausencias = Ausencia::with([
+                    'user',
+                    'user.horarios.aula', 
+                    'user.horarios.grupo', 
+                    'user.horarios.franja'
+                ])
+                ->whereMonth('fecha', $mes)
+                ->whereDay('fecha', $dia)
+                ->get();
+    
+            // Ordenar las ausencias por la franja horaria
+            $ausencias = $ausencias->sortBy(function($ausencia) {
+                return $ausencia->user->horarios->first()->franja->id;
+            });
+    
+            return response()->json([
+                'ausencias' => $ausencias,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Internal Server Error'], 500);
         }
+    }
+    
 }
