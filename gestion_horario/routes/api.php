@@ -15,6 +15,7 @@ use App\Http\Controllers\GrupoController;
 use App\Http\Controllers\PeriodoController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\RoleController;
 use App\Mail\UserMail;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -42,9 +43,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/periodos', PeriodoController::class);
     Route::resource('/getUserHorario', HorarioController::class);
     //TODO
-    Route::get('/horario/user/{id}', [HorarioController::class, 'getUserHorario']);
+    Route::get('/horario/user/{id}', [HorarioController::class, 'getUserHorario']);//ruta para ver el horario de un usuario determinado y no solo el propio
     Route::get('/ausencias/mes/{mes}/dia/{dia}', [AusenciaController::class, 'getAusenciasMesDia']);
     Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
+    Route::resource('/roles',RoleController::class);
+    Route::get('/horario/user/{id}/detalle', [HorarioController::class, 'getUserHorarioById']);
+    //Estas dos son para ver el horario y ausencias de los usuarios buscados por el admin o jefe de estudios
+    Route::get('/users/{id}/ausencias-with-details', [AusenciaController::class, 'getAusenciasWithDetailsById']);
+    Route::get('/horario/user-details/{id}', [HorarioController::class, 'getUserHorarioDetailsById']);
+
+
+ 
     
 });
 

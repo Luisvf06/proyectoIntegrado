@@ -318,4 +318,20 @@ Log::info('Datos validados recibidos en store:', $request->all());
         }
     }
     
+    public function getAusenciasWithDetailsById($id): JsonResponse
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
+
+            $ausencias = $user->ausencias()->get(['id', 'fecha', 'hora']);
+            return response()->json($ausencias, 200);
+        } catch (Exception $e) {
+            Log::error('Error al obtener las ausencias: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las ausencias: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

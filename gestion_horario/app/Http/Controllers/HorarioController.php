@@ -161,4 +161,33 @@ class HorarioController extends Controller
             'aulas' => $aulas,
         ]);
     }
+
+    public function getUserHorarioDetailsById($id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
+
+            $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
+                ->where('user_id', $user->id)
+                ->orderBy('franja_id')
+                ->get();
+
+            $franjas = Franja::whereHas('horarios', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+
+            return response()->json([
+                'user' => $user,
+                'horarios' => $horarios,
+                'franjas' => $franjas,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Error al obtener el horario: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener el horario: ' . $e->getMessage()], 500);
+        }
+    }
+
 }

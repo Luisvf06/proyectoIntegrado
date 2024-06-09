@@ -152,21 +152,21 @@ class UserController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-
-        $user->update($request->all());
-
-        if ($request->has('roles')) {
-            $user->roles()->sync($request->roles);
-        }
-
-        return response()->json($user);
+{
+    $user = User::find($id);
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
     }
 
+    $user->update($request->except('roles'));
+
+    if ($request->has('roles')) {
+        $roles = Role::whereIn('name', $request->roles)->pluck('id');
+        $user->roles()->sync($roles);
+    }
+
+    return response()->json($user->load('roles'));
+}
     public function destroy($id)
     {
         $user = User::find($id);
