@@ -42,40 +42,19 @@
           </li>
           <li>
             <a href="../plantillaDocente" class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-              Modificar plantilla docente
+              Plantilla docente
             </a>
           </li>
-          <li class="relative">
-            <span @click="toggleDropdownMenu" class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent cursor-pointer" id="mi-cuenta-link">
+          <li>
+            <a href="../miCuenta" class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
               Mi cuenta
-            </span>
-            <ul :class="[
-              'absolute',
-              'text-gray-700',
-              'pt-1',
-              'space-y-1',
-              'bg-white',
-              'rounded-md',
-              'shadow-lg',
-              'dark:bg-gray-800',
-  'dark:text-gray-400',
-              'top-full',
-              'left-0',
-              'w-48',
-              { 'block': isDropdownMenuOpen, 'hidden': !isDropdownMenuOpen }
-            ]" id="dropdown-menu">
-              <li>
-                <a href="#" class="block py-2 pr-4 pl-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
-                  Ajustes
-                </a>
-              </li>
-              <li>
-                <a @click.prevent="logout" class="block py-2 pr-4 pl-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
+            </a>
+          </li>
+          <li>
+                <a @click.prevent="logout" class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
                   Cerrar sesión
                 </a>
               </li>
-            </ul>
-          </li>
         </ul>
       </div>
     </nav>
