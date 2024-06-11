@@ -268,10 +268,11 @@ Log::info('Datos validados recibidos en store:', $request->all());
             return response()->json(['error' => 'Error al obtener las ausencias: ' . $e->getMessage()], 500);
         }
     }
-
     public function getAusenciasMesDia(Request $request, $mes, $dia): JsonResponse
     {
         try {
+            Log::info('Iniciando obtención de ausencias para mes: ' . $mes . ', día: ' . $dia);
+    
             // Obtener ausencias filtradas por mes y día, y cargar las relaciones necesarias
             $ausencias = Ausencia::with([
                     'user',
@@ -283,11 +284,16 @@ Log::info('Datos validados recibidos en store:', $request->all());
                 ->whereDay('fecha', $dia)
                 ->get();
     
+            Log::info('Ausencias encontradas:', $ausencias->toArray());
+    
             // Ordenar las ausencias por la franja horaria
             $ausencias = $ausencias->sortBy(function($ausencia) {
-                return $ausencia->user->horarios->first()->franja->id;
+                $horario = $ausencia->user->horarios->first();
+                return $horario && $horario->franja ? $horario->franja->id : null;
             });
-
+    
+            Log::info('Ausencias ordenadas:', $ausencias->toArray());
+    
             // Verificar si el cliente solicita el PDF
             if ($request->has('pdf') && $request->get('pdf') == 'true') {
                 $data = [
@@ -295,7 +301,7 @@ Log::info('Datos validados recibidos en store:', $request->all());
                     'date' => Carbon::createFromDate(null, $mes, $dia)->format('d-m-Y'),
                     'ausencias' => []
                 ];
-
+    
                 foreach ($ausencias as $ausencia) {
                     $horario = $ausencia->user->horarios->first();
                     $data['ausencias'][] = [
@@ -305,18 +311,22 @@ Log::info('Datos validados recibidos en store:', $request->all());
                         'grupo' => $horario ? $horario->grupo : null,
                     ];
                 }
-
+    
+                Log::info('Datos para PDF:', $data);
+    
                 $pdf = PDF::loadView('pdf.myPDF', $data);
                 return $pdf->download('ausencias_' . $dia . '_' . $mes . '.pdf');
             }
-
+    
             return response()->json([
                 'ausencias' => $ausencias,
             ]);
         } catch (\Exception $e) {
+            Log::error('Error al obtener las ausencias:', ['exception' => $e]);
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
+    
     
     public function getAusenciasWithDetailsById($id): JsonResponse
     {

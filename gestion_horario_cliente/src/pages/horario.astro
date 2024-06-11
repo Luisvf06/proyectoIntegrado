@@ -80,7 +80,9 @@ let error = null;
       if (!acc[hora]) {
         acc[hora] = {};
       }
-      acc[hora][horario.dia] = `${horario.aula.descripcion} - ${horario.grupo.descripcion}`;
+      const aulaDesc = horario.aula?.descripcion || '';
+      const grupoDesc = horario.grupo?.descripcion || 'no hay datos';
+      acc[hora][horario.dia] = `${aulaDesc}  ${grupoDesc}`;
       return acc;
     }, {});
 
