@@ -24,7 +24,7 @@
       <label for="search" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Buscar Docente:</label>
       <input type="text" id="search" v-model="searchTerm" @input="searchUsers" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
       <ul v-if="filteredUsers.length" class="mt-2 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <li v-for="user in filteredUsers" :key="user.id" class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" @click="selectProfessor(user.id)">
+        <li v-for="user in filteredUsers" :key="user.id" class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200" @click="selectProfessor(user.id)">
           {{ user.name }}
         </li>
       </ul>
@@ -399,81 +399,80 @@ export default {
       this.fetchHorario();
     },
     renderSchedule() {
-  const scheduleContainer = this.$refs.scheduleContainer;
+      const scheduleContainer = this.$refs.scheduleContainer;
 
-  if (!scheduleContainer) {
-    console.error('Schedule container not found');
-    return;
-  }
-
-  const table = document.createElement('table');
-  table.className = 'min-w-full border-collapse border border-gray-200 text-white';
-
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-  headers.forEach(headerText => {
-    const th = document.createElement('th');
-    th.className = 'border border-gray-200 px-4 py-2';
-    th.textContent = headerText;
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-
-  const franjasHorarios = this.franjas.reduce((acc, franja) => {
-    const hora = `${franja.hora_desde.slice(0, 5)} - ${franja.hora_hasta.slice(0, 5)}`;
-    acc[hora] = { ...acc[hora], horaDesde: franja.hora_desde, horaHasta: franja.hora_hasta };
-    return acc;
-  }, {});
-
-  this.horarios.forEach(horario => {
-    const franja = this.franjas.find(f => f.id === horario.franja_id);
-    const hora = `${franja.hora_desde.slice(0, 5)} - ${franja.hora_hasta.slice(0, 5)}`;
-    if (!franjasHorarios[hora][horario.dia]) {
-      franjasHorarios[hora][horario.dia] = [];
-    }
-    franjasHorarios[hora][horario.dia].push(horario);
-  });
-
-  Object.keys(franjasHorarios).forEach(hora => {
-    const row = document.createElement('tr');
-
-    const horaCell = document.createElement('td');
-    horaCell.className = 'border border-gray-200 px-4 py-2 text-center';
-    const [horaDesde, horaHasta] = hora.split(' - ');
-    horaCell.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;">
-                            <span>${horaDesde}</span>
-                            <span>-</span>
-                            <span>${horaHasta}</span>
-                          </div>`;
-    row.appendChild(horaCell);
-
-    const days = ['L', 'M', 'X', 'J', 'V'];
-    days.forEach(day => {
-      const dayCell = document.createElement('td');
-      dayCell.className = 'border border-gray-200 px-4 py-2';
-      if (franjasHorarios[hora][day]) {
-        const asignaturas = franjasHorarios[hora][day].map(horario => {
-          const asignaturaDescripcion = horario.asignatura.descripcion || 'No hay datos';
-          const aulaDescripcion = horario.aula ? horario.aula.descripcion : 'No hay datos';
-          return `${asignaturaDescripcion} (${aulaDescripcion})`;
-        }).join(', ');
-        dayCell.textContent = asignaturas;
+      if (!scheduleContainer) {
+        console.error('Schedule container not found');
+        return;
       }
-      row.appendChild(dayCell);
-    });
 
-    tbody.appendChild(row);
-  });
+      const table = document.createElement('table');
+      table.className = 'min-w-full border-collapse border border-gray-200 text-white';
 
-  table.appendChild(tbody);
-  scheduleContainer.innerHTML = '';
-  scheduleContainer.appendChild(table);
-}
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+      headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.className = 'border border-gray-200 px-4 py-2';
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
 
+      const tbody = document.createElement('tbody');
+
+      const franjasHorarios = this.franjas.reduce((acc, franja) => {
+        const hora = `${franja.hora_desde.slice(0, 5)} - ${franja.hora_hasta.slice(0, 5)}`;
+        acc[hora] = { ...acc[hora], horaDesde: franja.hora_desde, horaHasta: franja.hora_hasta };
+        return acc;
+      }, {});
+
+      this.horarios.forEach(horario => {
+        const franja = this.franjas.find(f => f.id === horario.franja_id);
+        const hora = `${franja.hora_desde.slice(0, 5)} - ${franja.hora_hasta.slice(0, 5)}`;
+        if (!franjasHorarios[hora][horario.dia]) {
+          franjasHorarios[hora][horario.dia] = [];
+        }
+        franjasHorarios[hora][horario.dia].push(horario);
+      });
+
+      Object.keys(franjasHorarios).forEach(hora => {
+        const row = document.createElement('tr');
+
+        const horaCell = document.createElement('td');
+        horaCell.className = 'border border-gray-200 px-4 py-2 text-center';
+        const [horaDesde, horaHasta] = hora.split(' - ');
+        horaCell.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;">
+                                <span>${horaDesde}</span>
+                                <span>-</span>
+                                <span>${horaHasta}</span>
+                              </div>`;
+        row.appendChild(horaCell);
+
+        const days = ['L', 'M', 'X', 'J', 'V'];
+        days.forEach(day => {
+          const dayCell = document.createElement('td');
+          dayCell.className = 'border border-gray-200 px-4 py-2';
+          if (franjasHorarios[hora][day]) {
+            const asignaturas = franjasHorarios[hora][day].map(horario => {
+              const asignaturaDescripcion = horario.asignatura.descripcion || 'No hay datos';
+              const aulaDescripcion = horario.aula ? horario.aula.descripcion : 'No hay datos';
+              return `${asignaturaDescripcion} (${aulaDescripcion})`;
+            }).join(', ');
+            dayCell.textContent = asignaturas;
+          }
+          row.appendChild(dayCell);
+        });
+
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      scheduleContainer.innerHTML = '';
+      scheduleContainer.appendChild(table);
+    }
   },
   watch: {
     selectedProfessor() {
@@ -502,5 +501,8 @@ ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
+}
+ul li {
+  color: var(--color-text, #ffffff);
 }
 </style>
