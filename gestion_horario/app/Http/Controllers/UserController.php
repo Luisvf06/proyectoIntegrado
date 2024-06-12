@@ -152,48 +152,115 @@ class UserController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    $user = User::find($id);
-    if (!$user) {
-        return response()->json(['message' => 'User not found'], 404);
-    }
-
-    $user->update($request->except('roles'));
-
-    if ($request->has('roles')) {
-        $roles = Role::whereIn('name', $request->roles)->pluck('id');
-        $user->roles()->sync($roles);
-    }
-
-    return response()->json($user->load('roles'));
-}
-    public function destroy($id)
     {
         $user = User::find($id);
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
-        $user->roles()->detach();
-        $user->delete();
-
-        return response()->json(['message' => 'User deleted']);
+    
+        $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'string|email|max:255|unique:users,email,' . $user->id,
+            'user_name' => 'string|max:255|unique:users,user_name,' . $user->id,
+            'professor_cod' => 'string|max:3',
+            'current_password' => 'required_with:new_password|string',
+            'new_password' => [
+                'nullable',
+                'string',
+                'min:7', // mínimo 7 caracteres
+                'regex:/[a-z]/', // al menos una letra minúscula
+                'regex:/[A-Z]/', // al menos una letra mayúscula
+                'regex:/[0-9]/', // al menos un número
+                'confirmed' // debe coincidir con el campo new_password_confirmation
+            ],
+        ]);
+    
+        // Verificar la contraseña actual si se proporciona una nueva contraseña
+        if ($request->filled('new_password') && !Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'La contraseña actual no es correcta.'], 403);
+        }
+    
+        // Actualizar la contraseña y revocar todos los tokens del usuario si se proporciona una nueva contraseña
+        if ($request->filled('new_password')) {
+            $user->password = Hash::make($request->new_password);
+            $user->tokens()->delete(); // Revocar todos los tokens del usuario
+            $user->save(); // Asegúrate de guardar los cambios
+        }
+    
+        // Actualizar otros campos
+        $user->update($request->except(['roles', 'current_password', 'new_password', 'new_password_confirmation']));
+    
+        if ($request->has('roles')) {
+            $roles = Role::whereIn('name', $request->roles)->pluck('id');
+            $user->roles()->sync($roles);
+        }
+    
+        return response()->json($user->load('roles'));
     }
-    public function getAuthenticatedUser(Request $request)
-    {
-        try {
-            $user = $request->user();
-
+    
+        public function destroy($id)
+        {
+            $user = User::find($id);
             if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
+                return response()->json(['message' => 'User not found'], 404);
             }
 
-            return response()->json($user, 200);
-        } catch (\Exception $e) {
-            Log::error('Error fetching user data: ' . $e->getMessage());
-            return response()->json(['error' => 'Internal Server Error'], 500);
+            $user->roles()->detach();
+            $user->delete();
+
+            return response()->json(['message' => 'User deleted']);
         }
-}
+        public function getAuthenticatedUser(Request $request)
+        {
+            try {
+                $user = $request->user();
+
+                if (!$user) {
+                    return response()->json(['error' => 'User not found'], 404);
+                }
+
+                return response()->json($user, 200);
+            } catch (\Exception $e) {
+                Log::error('Error fetching user data: ' . $e->getMessage());
+                return response()->json(['error' => 'Internal Server Error'], 500);
+            }
+    }
+
+    //funcion para acceder a los roles y controlar permisos
+        public function getUserRoles(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $roles = $user->roles()->pluck('name');
+        return response()->json(['roles' => $roles]);
+    }
+
+    // actualiza la contraseña del usuario loguaedo
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        // Validar las contraseñas actuales y nuevas
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed', // La confirmación puede ser opcional
+        ]);
+
+        // Verificar la contraseña actual
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'La contraseña actual no es correcta.'], 403);
+        }
+
+        // Actualizar la contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Contraseña actualizada correctamente.'], 200);
+    }
+
 }
 
 

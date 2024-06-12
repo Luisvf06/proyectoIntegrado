@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Estas dos son para ver el horario y ausencias de los usuarios buscados por el admin o jefe de estudios
     Route::get('/users/{id}/ausencias-with-details', [AusenciaController::class, 'getAusenciasWithDetailsById']);
     Route::get('/horario/user-details/{id}', [HorarioController::class, 'getUserHorarioDetailsById']);
+    Route::get('/user/roles', [UserController::class, 'getUserRoles']);
 
 
  

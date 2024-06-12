@@ -98,12 +98,12 @@ export default {
       }
     },
     validatePassword(password) {
-      const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+      const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{7,}$/;
       return passwordRegex.test(password);
     },
     async updateUser() {
       if (this.newPassword && !this.validatePassword(this.newPassword)) {
-        this.passwordError = 'La contraseña debe tener al menos 8 caracteres, incluyendo 1 número, 1 mayúscula y 1 minúscula.';
+        this.passwordError = 'La contraseña debe tener al menos 7 caracteres, incluyendo 1 número, 1 mayúscula y 1 minúscula.';
         return;
       }
 

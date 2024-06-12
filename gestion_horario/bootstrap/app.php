@@ -14,15 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Posiblemente quieras añadir middlewares de forma directa, sin el uso de 'append'
         $middleware->statefulApi([
             EnsureFrontendRequestsAreStateful::class,
+
         ]);
         $middleware->web([
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             LoginMiddleware::class,  #Creado por mí, supuestamente para controlar el acceso a usuarios no autenticados
         ]);
+
+        $middleware->trustHosts(at: ['laravel.test']); //lo que va después de at es el dominio al que se responde
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Configuración de excepciones
