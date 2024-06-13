@@ -120,7 +120,7 @@ export default {
         hora: ''
       },
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 10,//paginacion y numero de filas por página
       loading: true,
       userId: null
     };
@@ -148,7 +148,7 @@ export default {
           throw new Error('No se encontró el token de autenticación');
         }
 
-        const response = await fetch('http://127.0.0.1:8080/api/user', { // Ajusta este endpoint según tu backend
+        const response = await fetch('http://127.0.0.1:8080/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -285,13 +285,13 @@ export default {
           throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}.`);
         }
 
-        const createdAusencia = JSON.parse(responseText); // Aquí puede lanzar un error si no es JSON válido
+        const createdAusencia = JSON.parse(responseText);
         this.ausencias.push(createdAusencia);
         this.newAusencia = { fecha: '', hora: '' };
         this.closeModal();
         this.showSuccessMessage = true;
         setTimeout(() => this.showSuccessMessage = false, 3000);
-        await this.fetchAusencias();  // Actualizar tabla después de crear una nueva ausencia
+        await this.fetchAusencias();  // Actualiza tabla después de crear unausencia
       } catch (err) {
         console.error('Error creating ausencia:', err);
         alert(`Error creating ausencia: ${err.message}`);
@@ -369,12 +369,12 @@ export default {
           const updatedAusencia = JSON.parse(responseText);
           const index = this.ausencias.findIndex(a => a.id === id);
           if (index !== -1) {
-            this.ausencias.splice(index, 1, updatedAusencia); // Cambiado this.$set por this.ausencias.splice
+            this.ausencias.splice(index, 1, updatedAusencia); 
           }
 
           this.editMode = { ...this.editMode, [id]: false };
 
-          await this.fetchAusencias();  // Actualizar tabla después de guardar una ausencia
+          await this.fetchAusencias();  // Actualiza la tabla después de crear una ausencia
         } else {
           const responseText = await response.text();
           console.log('Unexpected server response:', responseText);
@@ -434,7 +434,7 @@ export default {
 
         this.ausencias = this.ausencias.filter(a => a.id !== id);
 
-        await this.fetchAusencias();  // Actualizar tabla después de eliminar una ausencia
+        await this.fetchAusencias();  // Actualiza tabla después de eliminar una ausencia
       })
       .catch(error => {
         console.error('Error eliminando la ausencia:', error);
@@ -451,5 +451,5 @@ export default {
 </script>
 
 <style scoped>
-/* Agrega tus estilos aquí */
+
 </style>

@@ -24,7 +24,7 @@ export default {
       faltas: [],
       diaSemana: '',
       selectedDate: '',
-      loading: false // Nueva variable de estado
+      loading: false 
     };
   },
   async mounted() {
@@ -200,11 +200,11 @@ export default {
         if (data.message) {
           alert(data.message);
         }
-        this.loading = false; // Establecer loading a false cuando la operación termine
+        this.loading = false; // false cuando la operación termine
       })
       .catch(error => {
         console.error('Error generating PDF:', error);
-        this.loading = false; // Establecer loading a false si hay un error
+        this.loading = false;// false si hay un error
       });
     }
   }

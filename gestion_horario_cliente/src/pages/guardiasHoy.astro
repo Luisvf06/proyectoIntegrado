@@ -1,5 +1,121 @@
 ---
-
 import Layout from '../layouts/Layout.astro';
+
+let guardias = [];
+let error = null;
 ---
-<Layout title='Guardias'/>
+<Layout title="Guardias">
+  <div id="error" class="error-message text-white">{error}</div>
+  
+  <div id="guardias-container" class="container mx-auto mt-10 text-white">
+  </div>
+</Layout>
+
+<script type="module">
+  async function fetchGuardiasData() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+      document.getElementById('error').textContent = 'User is not authenticated';
+      return;
+    }
+
+    try {
+      const response = await fetch('http://127.0.0.1:8080/api/horario/guardias', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch guardias data');
+      }
+
+      const data = await response.json();
+      updateDOM(data);
+    } catch (err) {
+      document.getElementById('error').textContent = err.message;
+    }
+  }
+
+  function updateDOM(data) {
+    const horarios = data.horarios;
+    const franjas = data.franjas;
+
+    const guardiasContainer = document.getElementById('guardias-container');
+    const table = document.createElement('table');
+    table.className = 'min-w-full border-collapse border border-gray-200 text-white';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['Horas', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.className = 'border border-gray-200 px-4 py-2';
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    // Agrupa horarios por franja
+    const franjasMap = franjas.reduce((acc, franja) => {
+      const hora = `${franja.hora_desde} - ${franja.hora_hasta}`;
+      acc[franja.id] = { descripcion: franja.descripcion, hora };
+      return acc;
+    }, {});
+
+    const horariosMap = horarios.reduce((acc, horario) => {
+      const franjaId = horario.franja_id;
+      if (!acc[franjaId]) {
+        acc[franjaId] = { hora: franjasMap[franjaId].hora, dias: {} };
+      }
+      const user = horario.user?.name || 'Desconocido';
+      const asignatura = horario.asignatura?.descripcion || 'Sin asignatura';
+      const entry = `${user} - ${asignatura}`;
+      
+      if (!acc[franjaId].dias[horario.dia]) {
+        acc[franjaId].dias[horario.dia] = [];
+      }
+      acc[franjaId].dias[horario.dia].push(entry);
+      return acc;
+    }, {});
+
+    // Crea filas por cada franja
+    Object.keys(horariosMap).forEach(franjaId => {
+      const franja = horariosMap[franjaId];
+      const row = document.createElement('tr');
+
+      const horaCell = document.createElement('td');
+      horaCell.className = 'border border-gray-200 px-4 py-2 text-center';
+      const [horaDesde, horaHasta] = franja.hora.split(' - ');
+      horaCell.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;">
+                              <span>${horaDesde}</span>
+                              <span>-</span>
+                              <span>${horaHasta}</span>
+                            </div>`;
+      row.appendChild(horaCell);
+
+      const days = ['L', 'M', 'X', 'J', 'V'];
+      days.forEach(day => {
+        const dayCell = document.createElement('td');
+        dayCell.className = 'border border-gray-200 px-4 py-2';
+        if (franja.dias[day]) {
+          dayCell.innerHTML = franja.dias[day].join('<br>');
+        } else {
+          dayCell.textContent = '';
+        }
+        row.appendChild(dayCell);
+      });
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    guardiasContainer.appendChild(table);
+  }
+
+  fetchGuardiasData();
+</script>

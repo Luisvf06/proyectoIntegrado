@@ -190,4 +190,33 @@ class HorarioController extends Controller
         }
     }
 
+    public function getGuardias()
+    {
+        // Obtener las asignaturas que comienzan con 'guard'
+        $guardiasAsignaturas = Asignatura::where('descripcion', 'like', 'Guard%')->get();
+    
+        // Obtener los horarios relacionados con las asignaturas de guardias para todos los usuarios
+        $horarios = Horario::with(['asignatura', 'franja', 'user', 'aula', 'grupo'])
+            ->whereIn('asignatura_id', $guardiasAsignaturas->pluck('id'))
+            ->orderBy('franja_id')
+            ->get();
+    
+        // Obtener franjas para formar el horario
+        $franjas = Franja::whereHas('horarios', function($query) use ($guardiasAsignaturas) {
+            $query->whereIn('asignatura_id', $guardiasAsignaturas->pluck('id'));
+        })->get();
+    
+        // Obtener aulas para saber el módulo
+        $aulas = Aula::whereHas('horarios', function($query) use ($guardiasAsignaturas) {
+            $query->whereIn('asignatura_id', $guardiasAsignaturas->pluck('id'));
+        })->get();
+    
+        return response()->json([
+            'horarios' => $horarios,
+            'franjas' => $franjas,
+            'aulas' => $aulas,
+            'asignaturas' => $guardiasAsignaturas,
+        ]);
+    }
+    
 }

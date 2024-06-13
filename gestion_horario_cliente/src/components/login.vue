@@ -6,7 +6,7 @@
       <input type="text" v-model="user_name" placeholder="Nombre de usuario o email" class="block w-full mb-4 p-2 border rounded">
       <input type="password" v-model="password" placeholder="Contraseña" class="block w-full mb-4 p-2 border rounded">
       <button @click="login" class="block w-full mb-4 p-2 bg-blue-500 text-white rounded">Iniciar sesión</button>
-      <a href="#" class="block w-full mb-4 p-2 text-center text-blue-500 hover:underline">¿Olvidaste tu contraseña?</a>
+      <a @click="goToForgotPassword" class="block w-full mb-4 p-2 text-center text-blue-500 hover:underline cursor-pointer">¿Olvidaste tu contraseña?</a>
       <p v-if="errorMsg" class="text-red-500">{{ errorMsg }}</p>
     </div>
   </div>
@@ -55,6 +55,10 @@ export default {
       }
     };
 
+    const goToForgotPassword = () => {
+      window.location.href = '/recuperar-contra'; // Redirige a la página de recuperarion de contraseña
+    };
+
     return {
       title,
       subtitle,
@@ -63,6 +67,7 @@ export default {
       login,
       errorMsg,
       isLoggedIn,
+      goToForgotPassword, 
     };
   },
 };

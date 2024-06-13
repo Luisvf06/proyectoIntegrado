@@ -48,7 +48,7 @@
       };
     },
     mounted() {
-      const userId = this.$route.params.id; // Suponiendo que usas vue-router y pasas el ID del usuario en la ruta
+      const userId = this.$route.params.id; 
       this.fetchUserData(userId);
       this.fetchRoles();
     },
@@ -64,7 +64,7 @@
       },
       async fetchRoles() {
         try {
-          const response = await axios.get('http://127.0.0.1:8080/api/roles'); // Suponiendo que tienes una ruta para obtener todos los roles
+          const response = await axios.get('http://127.0.0.1:8080/api/roles'); 
           this.roles = response.data;
         } catch (error) {
           console.error('Error fetching roles:', error);
@@ -88,6 +88,5 @@
   </script>
   
   <style scoped>
-  /* Puedes agregar estilos personalizados aquí */
   </style>
   

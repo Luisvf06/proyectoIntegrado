@@ -32,7 +32,7 @@
         </li>
         <li>
           <a href="../guardiasHoy" class="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-            Guardias de hoy
+            Tabla de guardias
           </a>
         </li>
         <li v-if="isAdmin">
@@ -66,12 +66,12 @@ export default {
     return {
       isMobileMenuOpen: false,
       isDropdownMenuOpen: false,
-      userRoles: [], // Array para almacenar los roles del usuario
+      userRoles: [], // Array para almacenar los 
     };
   },
   computed: {
     isAdmin() {
-      // Verifica si el usuario tiene el rol de 'admin'
+      // Verifica si el usuario es 'admin'
       return this.userRoles.includes('admin');
     },
   },

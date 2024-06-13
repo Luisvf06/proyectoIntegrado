@@ -14,13 +14,17 @@ const { title } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="csrf-token" content="{{ csrf_token() }}">
-
 		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<ViewTransitions />
+		
+		<!-- Incluir Google Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..900&display=swap" rel="stylesheet">
 
 		<style is:global>
 			:root {
@@ -33,20 +37,21 @@ const { title } = Astro.props;
 					rgb(var(--accent-light)) 30%,
 					white 60%
 				);
+				--font-primary: 'Roboto Flex', sans-serif;
 			}
 			html,
 			body {
 				overflow: hidden;
 			}
 			html {
-				font-family: system-ui, sans-serif;
+				font-family: var(--font-primary);
 				background: #13151a;
 				background-size: 224px;
 			}
 			code {
 				font-family:
 					Menlo,
-			Monaco,
+					Monaco,
 					Lucida Console,
 					Liberation Mono,
 					DejaVu Sans Mono,
@@ -54,25 +59,23 @@ const { title } = Astro.props;
 					Courier New,
 					monospace;
 			}
-            body {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Cambiado de flex-start a center para centrar horizontalmente */
-    justify-content: center; /* Asegura el centrado vertical */
-    padding: 2rem;
-    min-height: 100vh;
-    width: 100vw; /* Asegura que ocupa todo el ancho */
-    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
-}
-
-
+			body {
+				display: flex;
+				flex-direction: column;
+				align-items: center; /* centrar horizontalmente */
+				justify-content: center; /*centrado vertical */
+				padding: 2rem;
+				min-height: 100vh;
+				width: 100vw; /* Ocupa todo el ancho */
+				box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+			}
 			main {
 				margin: auto;
 				padding: 1rem;
 				width: 800px;
 				max-width: calc(100% - 2rem);
 				color: white;
-				font-size: 20px;
+				font-size: clamp(1rem, 2.5vw, 1.25rem);
 				line-height: 1.6;
 			}
 			.astro-a {
@@ -85,7 +88,7 @@ const { title } = Astro.props;
 				z-index: -1;
 			}
 			h1 {
-				font-size: 4rem;
+				font-size: clamp(2rem, 5vw, 4rem);
 				font-weight: 700;
 				line-height: 1;
 				text-align: left; 

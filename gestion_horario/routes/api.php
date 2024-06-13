@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\RoleController;
 use App\Mail\UserMail;
+use App\Http\Controllers\PasswordController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -42,7 +43,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/grupos', GrupoController::class);
     Route::resource('/periodos', PeriodoController::class);
     Route::resource('/getUserHorario', HorarioController::class);
-    //TODO
     Route::get('/horario/user/{id}', [HorarioController::class, 'getUserHorario']);//ruta para ver el horario de un usuario determinado y no solo el propio
     Route::get('/ausencias/mes/{mes}/dia/{dia}', [AusenciaController::class, 'getAusenciasMesDia']);
     Route::get('/generate-pdf', [PDFController::class, 'generatePDF']);
@@ -52,7 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{id}/ausencias-with-details', [AusenciaController::class, 'getAusenciasWithDetailsById']);
     Route::get('/horario/user-details/{id}', [HorarioController::class, 'getUserHorarioDetailsById']);
     Route::get('/user/roles', [UserController::class, 'getUserRoles']);
-
+    //Ruta para ver guardias
+    Route::get('/horario/guardias', [HorarioController::class, 'getGuardias']);
 
  
     
@@ -76,3 +77,7 @@ Route::options('/{any}', function (Request $request) {
         ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 })->where('any', '.*');
+
+//Rutas para la recuperacion de contraseña. No funciona
+Route::post('/forgot-password', [PasswordController::class, 'forgotPassword'])->middleware('guest')->name('password.email');
+Route::post('/reset-password', [PasswordController::class, 'resetPassword'])->middleware('guest')->name('password.update');

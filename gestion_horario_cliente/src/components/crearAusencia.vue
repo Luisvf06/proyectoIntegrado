@@ -125,7 +125,7 @@
             throw new Error(`Failed to create ausencia: ${response.status} ${response.statusText}. Details: ${errorText}`);
           }
           
-          // Cerrar modal y emitir evento para recargar la página
+          // Cerrar modal y recargar la página
           this.$emit('close');
           this.$emit('ausencia-creada');
         } catch (err) {
@@ -137,6 +137,6 @@
   </script>
   
   <style scoped>
-  /* Agrega tus estilos aquí */
+
   </style>
   

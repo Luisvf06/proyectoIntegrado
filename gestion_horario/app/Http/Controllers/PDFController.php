@@ -21,7 +21,7 @@ class PDFController extends Controller
         $selectedDate = $request->query('date');
         $selectedWeek = Carbon::parse($selectedDate)->dayOfWeek;
     
-        // Excluir domingos y sábados
+        // No incluyo domingos y sábados porque no tienen sentido
         if ($selectedWeek == 0 || $selectedWeek == 6) {
             return response()->json(['message' => 'No se generan reportes de los fines de semana.'], 400);
         }
