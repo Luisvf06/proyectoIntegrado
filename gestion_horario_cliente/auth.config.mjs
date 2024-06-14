@@ -1,1 +1,0 @@
-//Este archivo es para añadir los proovedores de identidad, como Google o Facebook. Como la aplicación busca crear usuarios y que se registren con esa cuenta no se usará, pero aquí lo dejo.

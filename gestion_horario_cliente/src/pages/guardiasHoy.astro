@@ -4,8 +4,9 @@ import Layout from '../layouts/Layout.astro';
 let guardias = [];
 let error = null;
 ---
+
 <Layout title="Guardias">
-  <div id="error" class="error-message text-white">{error}</div>
+  <div id="error" class="error-message text-white"></div>
   
   <div id="guardias-container" class="container mx-auto mt-10 text-white">
   </div>
@@ -15,7 +16,10 @@ let error = null;
   async function fetchGuardiasData() {
     const token = sessionStorage.getItem('authToken');
     if (!token) {
-      document.getElementById('error').textContent = 'User is not authenticated';
+      const errorElement = document.getElementById('error');
+      if (errorElement) {
+        errorElement.textContent = 'User is not authenticated';
+      }
       return;
     }
 
@@ -34,7 +38,10 @@ let error = null;
       const data = await response.json();
       updateDOM(data);
     } catch (err) {
-      document.getElementById('error').textContent = err.message;
+      const errorElement = document.getElementById('error');
+      if (errorElement) {
+        errorElement.textContent = err.message;
+      }
     }
   }
 
@@ -77,9 +84,9 @@ let error = null;
       const entry = `${user} - ${asignatura}`;
       
       if (!acc[franjaId].dias[horario.dia]) {
-        acc[franjaId].dias[horario.dia] = [];
+        acc[franjaId].dias[horario.dia] = new Set();
       }
-      acc[franjaId].dias[horario.dia].push(entry);
+      acc[franjaId].dias[horario.dia].add(entry); // Usar Set para eliminar duplicados
       return acc;
     }, {});
 
@@ -103,7 +110,7 @@ let error = null;
         const dayCell = document.createElement('td');
         dayCell.className = 'border border-gray-200 px-4 py-2';
         if (franja.dias[day]) {
-          dayCell.innerHTML = franja.dias[day].join('<br>');
+          dayCell.innerHTML = Array.from(franja.dias[day]).join('<br>'); // Convertir Set a Array para imprimir
         } else {
           dayCell.textContent = '';
         }

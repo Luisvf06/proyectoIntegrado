@@ -6,7 +6,7 @@
         <label for="file" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Adjunte el documento .xml:</label>
         <div class="flex">
           <input type="file" id="file" name="file" @change="onFileChange" class="block w-2/3 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-          <button type="submit" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 flex items-center">
+          <button type="submit" :disabled="isLoading" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 flex items-center">
             <span v-if="isLoading" class="mr-2">
               <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
